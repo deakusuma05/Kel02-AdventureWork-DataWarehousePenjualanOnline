@@ -226,6 +226,11 @@
           <button onclick="resetGlobalFilters()" class="filter-control px-3 py-1.5 rounded-xl bg-[#111318] hover:bg-[#2379F5] text-white font-bold transition-colors duration-150">
             Reset
           </button>
+
+          <button onclick="exportSummaryCSV()" class="filter-control px-3 py-1.5 rounded-xl bg-white hover:bg-[#E1EEFF] text-[#111318] border border-[#CBD5E1] font-bold transition-colors duration-150 flex items-center gap-1.5" title="Ekspor data ringkasan filter aktif ke CSV">
+            <svg class="w-3.5 h-3.5 text-[#2379F5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            <span>Ekspor CSV</span>
+          </button>
         </div>
       </div>
     </header>
@@ -279,9 +284,14 @@
         <!-- KPI 3: Active Customers (Powder Blue Bento Card) -->
         <div class="bento-powder p-6 flex flex-col justify-between" title="Pertanyaan Bisnis P3: Pelanggan Aktif Online — COUNT(DISTINCT customer_key)">
           <div>
-            <span class="text-[13px] font-bold text-[#111318] block mb-2">
-              Pelanggan Aktif.
-            </span>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[13px] font-bold text-[#111318] block">
+                Pelanggan Aktif.
+              </span>
+              <button onclick="showCustomerModal()" class="text-[11px] font-bold text-[#2379F5] hover:text-[#111318] bg-white/75 hover:bg-white px-2 py-0.5 rounded-md border border-[#86B4F8]/50 transition-colors shadow-xs" title="Lihat 10 Pelanggan VIP Teratas (PB-03)">
+                10 VIP &rarr;
+              </button>
+            </div>
             <div class="text-[28px] xl:text-[32px] font-extrabold text-[#111318] tracking-tight leading-none" id="val-kpi-customers">
               18.484
             </div>
@@ -290,7 +300,7 @@
             <span id="val-kpi-freq-badge" class="font-bold text-[#111318]">
               1,50 Pesanan
             </span>
-            <span class="text-[#17324F] font-medium">29 VIP (&gt;$10K) • P3</span>
+            <button onclick="showCustomerModal()" class="text-[#17324F] hover:text-[#2379F5] font-semibold underline cursor-pointer" title="Buka Rincian Pelanggan VIP">29 VIP (&gt;$10K) • P3</button>
           </div>
         </div>
 
@@ -514,6 +524,72 @@
                 <span class="font-bold text-[#17324F]">$1.339.462,79</span>
               </div>
             </div>
+
+            <!-- Expandable Top 4–10 Products (Hidden by Default) -->
+            <div id="extra-products" class="hidden space-y-2 text-[12px] mt-2">
+              <!-- Rank 4 -->
+              <div class="bg-white px-3.5 py-2 rounded-xl border border-[#E1EEFF] flex justify-between items-center">
+                <div>
+                  <span class="font-bold text-[#17324F] block">4. Mountain-200 Silver, 46</span>
+                  <span class="text-[11px] text-[#64748B]">580 unit terjual • Bikes</span>
+                </div>
+                <span class="font-bold text-[#17324F]">$1.301.100,10</span>
+              </div>
+              <!-- Rank 5 -->
+              <div class="bg-white px-3.5 py-2 rounded-xl border border-[#E1EEFF] flex justify-between items-center">
+                <div>
+                  <span class="font-bold text-[#17324F] block">5. Mountain-200 Black, 38</span>
+                  <span class="text-[11px] text-[#64748B]">582 unit terjual • Bikes</span>
+                </div>
+                <span class="font-bold text-[#17324F]">$1.294.866,14</span>
+              </div>
+              <!-- Rank 6 -->
+              <div class="bg-white px-3.5 py-2 rounded-xl border border-[#E1EEFF] flex justify-between items-center">
+                <div>
+                  <span class="font-bold text-[#17324F] block">6. Mountain-200 Silver, 42</span>
+                  <span class="text-[11px] text-[#64748B]">560 unit terjual • Bikes</span>
+                </div>
+                <span class="font-bold text-[#17324F]">$1.257.434,57</span>
+              </div>
+              <!-- Rank 7 -->
+              <div class="bg-white px-3.5 py-2 rounded-xl border border-[#E1EEFF] flex justify-between items-center">
+                <div>
+                  <span class="font-bold text-[#17324F] block">7. Road-150 Red, 48</span>
+                  <span class="text-[11px] text-[#64748B]">337 unit terjual • Bikes</span>
+                </div>
+                <span class="font-bold text-[#17324F]">$1.205.876,99</span>
+              </div>
+              <!-- Rank 8 -->
+              <div class="bg-white px-3.5 py-2 rounded-xl border border-[#E1EEFF] flex justify-between items-center">
+                <div>
+                  <span class="font-bold text-[#17324F] block">8. Road-150 Red, 62</span>
+                  <span class="text-[11px] text-[#64748B]">336 unit terjual • Bikes</span>
+                </div>
+                <span class="font-bold text-[#17324F]">$1.202.298,72</span>
+              </div>
+              <!-- Rank 9 -->
+              <div class="bg-white px-3.5 py-2 rounded-xl border border-[#E1EEFF] flex justify-between items-center">
+                <div>
+                  <span class="font-bold text-[#17324F] block">9. Road-150 Red, 52</span>
+                  <span class="text-[11px] text-[#64748B]">302 unit terjual • Bikes</span>
+                </div>
+                <span class="font-bold text-[#17324F]">$1.080.637,54</span>
+              </div>
+              <!-- Rank 10 -->
+              <div class="bg-white px-3.5 py-2 rounded-xl border border-[#E1EEFF] flex justify-between items-center">
+                <div>
+                  <span class="font-bold text-[#17324F] block">10. Road-150 Red, 56</span>
+                  <span class="text-[11px] text-[#64748B]">295 unit terjual • Bikes</span>
+                </div>
+                <span class="font-bold text-[#17324F]">$1.055.589,65</span>
+              </div>
+            </div>
+
+            <!-- Toggle Button Top 10 Products -->
+            <button id="btn-toggle-products" onclick="toggleTopProducts()" class="w-full mt-2.5 py-1.5 px-3 rounded-xl bg-white hover:bg-[#E1EEFF] text-[#2379F5] font-bold text-[11.5px] border border-[#CBD5E1] transition-all flex items-center justify-center gap-1.5 shadow-2xs">
+              <span id="btn-toggle-products-text">Tampilkan Top 4–10 Produk</span>
+              <svg id="btn-toggle-products-icon" class="w-3.5 h-3.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
           </div>
 
           <div class="mt-4 pt-3 border-t border-[#DCEBFE] flex justify-between items-center text-[12px]">
@@ -576,13 +652,16 @@
               </div>
             </div>
 
-            <div class="bento-powder p-4 text-[12px]">
-              <div class="flex items-center justify-between mb-1">
+            <div class="bento-powder p-4 text-[12px] rounded-2xl border border-[#A9CAFA]/50">
+              <div class="flex items-center justify-between mb-1.5">
                 <span class="font-bold text-[#111318]">Wilayah Teratas (Territory Level)</span>
-                <span class="px-2 py-0.5 rounded-full bg-[#111318] text-white text-[10px] font-bold">Top 2</span>
+                <button onclick="showTerritoryModal()" class="text-[11px] font-bold text-[#2379F5] hover:text-[#111318] bg-white/80 hover:bg-white px-2 py-0.5 rounded-md border border-[#86B4F8]/50 transition-colors shadow-2xs cursor-pointer" title="Buka Tabel Rincian Seluruh 10 Wilayah">
+                  Semua 10 Wilayah &rarr;
+                </button>
               </div>
-              <span class="text-[#17324F] block"><strong>1. Australia:</strong> $9.061.000,58 (6.718 pesanan)</span>
-              <span class="text-[#17324F] block mt-0.5"><strong>2. US Southwest:</strong> $5.718.150,81 (5.473 pesanan)</span>
+              <span class="text-[#17324F] block"><strong>1. Australia (Pacific):</strong> $9,06M (6.718 pesanan)</span>
+              <span class="text-[#17324F] block mt-0.5"><strong>2. US Southwest (NA):</strong> $5,72M (5.473 pesanan)</span>
+              <span class="text-[#64748B] block mt-1 text-[11px]">3. US Northwest ($3,65M) • 4. UK ($3,39M) • 5. Germany ($2,89M)</span>
             </div>
           </div>
 
@@ -967,6 +1046,245 @@ GROUP BY s.ship_method_name ORDER BY total_orders DESC;</pre>
     </div>
   </div>
 
+  <!-- ========================================== -->
+  <!-- MODAL TOP 10 PELANGGAN VIP ONLINE (PB-03)  -->
+  <!-- ========================================== -->
+  <div id="customer-modal" class="fixed inset-0 bg-[#111318]/55 z-50 flex items-center justify-center p-4 hidden" role="dialog" aria-modal="true">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-6 border border-[#DCEBFE] shadow-xl relative max-h-[90vh] flex flex-col">
+      <button onclick="closeCustomerModal()" aria-label="Tutup Modal" class="absolute right-4 top-4 w-8 h-8 rounded-full bg-[#111318] hover:bg-[#2379F5] text-white font-bold flex items-center justify-center transition-colors duration-150">✕</button>
+      <div class="mb-4">
+        <span class="px-3 py-1 rounded-full text-[11px] font-bold bg-[#C9DFFF] text-[#111318]">Pertanyaan Bisnis P3 • Pelanggan Berulang &amp; VIP</span>
+        <h3 class="text-[18px] font-extrabold text-[#111318] mt-2">Daftar 10 Pelanggan Online Teratas (Top VIP Customers)</h3>
+        <p class="text-[12px] text-[#64748B] mt-0.5">Pelanggan dengan akumulasi belanja online tertinggi di <code>dim_customer</code> (Ambang batas VIP: belanja &gt; $10.000)</p>
+      </div>
+      <div class="overflow-y-auto flex-1 rounded-2xl border border-[#E1EEFF]">
+        <table class="w-full text-left text-[12px]">
+          <thead class="bg-[#F5F9FF] border-b border-[#E1EEFF] text-[#17324F] font-bold sticky top-0">
+            <tr>
+              <th class="py-2.5 px-3">#</th>
+              <th class="py-2.5 px-3">Nama Pelanggan</th>
+              <th class="py-2.5 px-3">Customer ID</th>
+              <th class="py-2.5 px-3 text-center">Frekuensi</th>
+              <th class="py-2.5 px-3 text-right">Total Belanja ($)</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[#E1EEFF] text-[#111318]">
+            <tr class="hover:bg-[#F8FAFC] transition-colors">
+              <td class="py-2.5 px-3 font-bold text-[#2379F5]">1</td>
+              <td class="py-2.5 px-3 font-semibold">Nichole Nara</td>
+              <td class="py-2.5 px-3 text-[#64748B] font-mono">12301</td>
+              <td class="py-2.5 px-3 text-center font-bold">5 pesanan</td>
+              <td class="py-2.5 px-3 text-right font-extrabold text-[#111318]">$13.295,38</td>
+            </tr>
+            <tr class="hover:bg-[#F8FAFC] transition-colors">
+              <td class="py-2.5 px-3 font-bold text-[#2379F5]">2</td>
+              <td class="py-2.5 px-3 font-semibold">Kaitlyn J Henderson</td>
+              <td class="py-2.5 px-3 text-[#64748B] font-mono">12132</td>
+              <td class="py-2.5 px-3 text-center font-bold">5 pesanan</td>
+              <td class="py-2.5 px-3 text-right font-extrabold text-[#111318]">$13.294,27</td>
+            </tr>
+            <tr class="hover:bg-[#F8FAFC] transition-colors">
+              <td class="py-2.5 px-3 font-bold text-[#2379F5]">3</td>
+              <td class="py-2.5 px-3 font-semibold">Margaret He</td>
+              <td class="py-2.5 px-3 text-[#64748B] font-mono">12308</td>
+              <td class="py-2.5 px-3 text-center font-bold">5 pesanan</td>
+              <td class="py-2.5 px-3 text-right font-extrabold text-[#111318]">$13.269,27</td>
+            </tr>
+            <tr class="hover:bg-[#F8FAFC] transition-colors">
+              <td class="py-2.5 px-3 font-bold text-[#64748B]">4</td>
+              <td class="py-2.5 px-3 font-medium">Randall M Dominguez</td>
+              <td class="py-2.5 px-3 text-[#64748B] font-mono">12131</td>
+              <td class="py-2.5 px-3 text-center font-bold">5 pesanan</td>
+              <td class="py-2.5 px-3 text-right font-bold text-[#111318]">$13.265,99</td>
+            </tr>
+            <tr class="hover:bg-[#F8FAFC] transition-colors">
+              <td class="py-2.5 px-3 font-bold text-[#64748B]">5</td>
+              <td class="py-2.5 px-3 font-medium">Adriana L Gonzalez</td>
+              <td class="py-2.5 px-3 text-[#64748B] font-mono">12300</td>
+              <td class="py-2.5 px-3 text-center font-bold">5 pesanan</td>
+              <td class="py-2.5 px-3 text-right font-bold text-[#111318]">$13.242,70</td>
+            </tr>
+            <tr class="hover:bg-[#F8FAFC] transition-colors">
+              <td class="py-2.5 px-3 font-bold text-[#64748B]">6</td>
+              <td class="py-2.5 px-3 font-medium">Rosa K Hu</td>
+              <td class="py-2.5 px-3 text-[#64748B] font-mono">12321</td>
+              <td class="py-2.5 px-3 text-center font-bold">5 pesanan</td>
+              <td class="py-2.5 px-3 text-right font-bold text-[#111318]">$13.215,65</td>
+            </tr>
+            <tr class="hover:bg-[#F8FAFC] transition-colors">
+              <td class="py-2.5 px-3 font-bold text-[#64748B]">7</td>
+              <td class="py-2.5 px-3 font-medium">Brandi D Gill</td>
+              <td class="py-2.5 px-3 text-[#64748B] font-mono">12124</td>
+              <td class="py-2.5 px-3 text-center font-bold">5 pesanan</td>
+              <td class="py-2.5 px-3 text-right font-bold text-[#111318]">$13.195,64</td>
+            </tr>
+            <tr class="hover:bg-[#F8FAFC] transition-colors">
+              <td class="py-2.5 px-3 font-bold text-[#64748B]">8</td>
+              <td class="py-2.5 px-3 font-medium">Brad She</td>
+              <td class="py-2.5 px-3 text-[#64748B] font-mono">12307</td>
+              <td class="py-2.5 px-3 text-center font-bold">5 pesanan</td>
+              <td class="py-2.5 px-3 text-right font-bold text-[#111318]">$13.173,19</td>
+            </tr>
+            <tr class="hover:bg-[#F8FAFC] transition-colors">
+              <td class="py-2.5 px-3 font-bold text-[#64748B]">9</td>
+              <td class="py-2.5 px-3 font-medium">Francisco A Sara</td>
+              <td class="py-2.5 px-3 text-[#64748B] font-mono">12296</td>
+              <td class="py-2.5 px-3 text-center font-bold">5 pesanan</td>
+              <td class="py-2.5 px-3 text-right font-bold text-[#111318]">$13.164,64</td>
+            </tr>
+            <tr class="hover:bg-[#F8FAFC] transition-colors">
+              <td class="py-2.5 px-3 font-bold text-[#64748B]">10</td>
+              <td class="py-2.5 px-3 font-medium">Maurice M Shan</td>
+              <td class="py-2.5 px-3 text-[#64748B] font-mono">11433</td>
+              <td class="py-2.5 px-3 text-center font-bold text-[#2379F5]">6 pesanan</td>
+              <td class="py-2.5 px-3 text-right font-bold text-[#111318]">$12.909,67</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="mt-4 pt-3 border-t border-[#DCEBFE] flex items-center justify-between text-[11.5px] text-[#64748B]">
+        <span>Terdapat total <strong>29 pelanggan VIP</strong> dengan nilai belanja &gt; $10.000 (Rata-rata 5,0 pesanan).</span>
+        <button onclick="showQueryModal('P3'); closeCustomerModal();" class="font-bold text-[#2379F5] hover:text-[#111318] underline">Lihat Kueri SQL (P3)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL 10 WILAYAH PEMASARAN (PB-04)        -->
+  <!-- ========================================== -->
+  <div id="territory-modal" class="fixed inset-0 bg-[#111318]/55 z-50 flex items-center justify-center p-4 hidden" role="dialog" aria-modal="true">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-6 border border-[#DCEBFE] shadow-xl relative max-h-[90vh] flex flex-col">
+      <button onclick="closeTerritoryModal()" aria-label="Tutup Modal" class="absolute right-4 top-4 w-8 h-8 rounded-full bg-[#111318] hover:bg-[#2379F5] text-white font-bold flex items-center justify-center transition-colors duration-150">✕</button>
+      <div class="mb-4">
+        <span class="px-3 py-1 rounded-full text-[11px] font-bold bg-[#C9DFFF] text-[#111318]">Pertanyaan Bisnis P4 • Penjualan per Wilayah</span>
+        <h3 class="text-[18px] font-extrabold text-[#111318] mt-2">Daftar Lengkap 10 Wilayah Pemasaran (Territory Performance)</h3>
+        <p class="text-[12px] text-[#64748B] mt-0.5">Kontribusi nilai penjualan, pesanan unik, dan kuantitas unit menurut <code>dim_territory</code></p>
+      </div>
+      <div class="overflow-y-auto flex-1 rounded-2xl border border-[#E1EEFF]">
+        <table class="w-full text-left text-[12px]">
+          <thead class="bg-[#F5F9FF] border-b border-[#E1EEFF] text-[#17324F] font-bold sticky top-0">
+            <tr>
+              <th class="py-2.5 px-3">#</th>
+              <th class="py-2.5 px-3">Wilayah</th>
+              <th class="py-2.5 px-2.5">Negara</th>
+              <th class="py-2.5 px-2.5">Grup</th>
+              <th class="py-2.5 px-2.5 text-center">Pesanan</th>
+              <th class="py-2.5 px-2.5 text-center">Unit</th>
+              <th class="py-2.5 px-3 text-right">Nilai Penjualan ($)</th>
+              <th class="py-2.5 px-3 text-right">Pangsa (%)</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[#E1EEFF] text-[#111318]">
+            <tr class="hover:bg-[#F8FAFC] transition-colors">
+              <td class="py-2 px-3 font-bold text-[#2379F5]">1</td>
+              <td class="py-2 px-3 font-semibold">Australia</td>
+              <td class="py-2 px-2.5 font-mono text-[#64748B]">AU</td>
+              <td class="py-2 px-2.5 text-[#17324F]">Pacific</td>
+              <td class="py-2 px-2.5 text-center font-bold">6.718</td>
+              <td class="py-2 px-2.5 text-center text-[#64748B]">13.345</td>
+              <td class="py-2 px-3 text-right font-extrabold text-[#111318]">$9.061.000,58</td>
+              <td class="py-2 px-3 text-right font-bold text-[#2379F5]">30,86%</td>
+            </tr>
+            <tr class="hover:bg-[#F8FAFC] transition-colors">
+              <td class="py-2 px-3 font-bold text-[#2379F5]">2</td>
+              <td class="py-2 px-3 font-semibold">Southwest</td>
+              <td class="py-2 px-2.5 font-mono text-[#64748B]">US</td>
+              <td class="py-2 px-2.5 text-[#17324F]">North America</td>
+              <td class="py-2 px-2.5 text-center font-bold">5.473</td>
+              <td class="py-2 px-2.5 text-center text-[#64748B]">12.265</td>
+              <td class="py-2 px-3 text-right font-extrabold text-[#111318]">$5.718.150,81</td>
+              <td class="py-2 px-3 text-right font-bold text-[#2379F5]">19,48%</td>
+            </tr>
+            <tr class="hover:bg-[#F8FAFC] transition-colors">
+              <td class="py-2 px-3 font-bold text-[#2379F5]">3</td>
+              <td class="py-2 px-3 font-semibold">Northwest</td>
+              <td class="py-2 px-2.5 font-mono text-[#64748B]">US</td>
+              <td class="py-2 px-2.5 text-[#17324F]">North America</td>
+              <td class="py-2 px-2.5 text-center font-bold">4.058</td>
+              <td class="py-2 px-2.5 text-center text-[#64748B]">8.993</td>
+              <td class="py-2 px-3 text-right font-bold text-[#111318]">$3.649.866,55</td>
+              <td class="py-2 px-3 text-right font-semibold text-[#64748B]">12,43%</td>
+            </tr>
+            <tr class="hover:bg-[#F8FAFC] transition-colors">
+              <td class="py-2 px-3 font-bold text-[#64748B]">4</td>
+              <td class="py-2 px-3 font-medium">United Kingdom</td>
+              <td class="py-2 px-2.5 font-mono text-[#64748B]">GB</td>
+              <td class="py-2 px-2.5 text-[#17324F]">Europe</td>
+              <td class="py-2 px-2.5 text-center font-bold">3.031</td>
+              <td class="py-2 px-2.5 text-center text-[#64748B]">6.906</td>
+              <td class="py-2 px-3 text-right font-bold text-[#111318]">$3.391.712,21</td>
+              <td class="py-2 px-3 text-right font-semibold text-[#64748B]">11,55%</td>
+            </tr>
+            <tr class="hover:bg-[#F8FAFC] transition-colors">
+              <td class="py-2 px-3 font-bold text-[#64748B]">5</td>
+              <td class="py-2 px-3 font-medium">Germany</td>
+              <td class="py-2 px-2.5 font-mono text-[#64748B]">DE</td>
+              <td class="py-2 px-2.5 text-[#17324F]">Europe</td>
+              <td class="py-2 px-2.5 text-center font-bold">2.484</td>
+              <td class="py-2 px-2.5 text-center text-[#64748B]">5.625</td>
+              <td class="py-2 px-3 text-right font-bold text-[#111318]">$2.894.312,34</td>
+              <td class="py-2 px-3 text-right font-semibold text-[#64748B]">9,86%</td>
+            </tr>
+            <tr class="hover:bg-[#F8FAFC] transition-colors">
+              <td class="py-2 px-3 font-bold text-[#64748B]">6</td>
+              <td class="py-2 px-3 font-medium">France</td>
+              <td class="py-2 px-2.5 font-mono text-[#64748B]">FR</td>
+              <td class="py-2 px-2.5 text-[#17324F]">Europe</td>
+              <td class="py-2 px-2.5 text-center font-bold">2.484</td>
+              <td class="py-2 px-2.5 text-center text-[#64748B]">5.558</td>
+              <td class="py-2 px-3 text-right font-bold text-[#111318]">$2.644.017,71</td>
+              <td class="py-2 px-3 text-right font-semibold text-[#64748B]">9,01%</td>
+            </tr>
+            <tr class="hover:bg-[#F8FAFC] transition-colors">
+              <td class="py-2 px-3 font-bold text-[#64748B]">7</td>
+              <td class="py-2 px-3 font-medium">Canada</td>
+              <td class="py-2 px-2.5 font-mono text-[#64748B]">CA</td>
+              <td class="py-2 px-2.5 text-[#17324F]">North America</td>
+              <td class="py-2 px-2.5 text-center font-bold">3.375</td>
+              <td class="py-2 px-2.5 text-center text-[#64748B]">7.620</td>
+              <td class="py-2 px-3 text-right font-bold text-[#111318]">$1.977.844,86</td>
+              <td class="py-2 px-3 text-right font-semibold text-[#64748B]">6,74%</td>
+            </tr>
+            <tr class="hover:bg-[#F8FAFC] transition-colors">
+              <td class="py-2 px-3 font-bold text-[#64748B]">8</td>
+              <td class="py-2 px-3 font-medium">Southeast</td>
+              <td class="py-2 px-2.5 font-mono text-[#64748B]">US</td>
+              <td class="py-2 px-2.5 text-[#17324F]">North America</td>
+              <td class="py-2 px-2.5 text-center font-bold">17</td>
+              <td class="py-2 px-2.5 text-center text-[#64748B]">39</td>
+              <td class="py-2 px-3 text-right font-bold text-[#111318]">$12.238,85</td>
+              <td class="py-2 px-3 text-right font-semibold text-[#64748B]">0,04%</td>
+            </tr>
+            <tr class="hover:bg-[#F8FAFC] transition-colors">
+              <td class="py-2 px-3 font-bold text-[#64748B]">9</td>
+              <td class="py-2 px-3 font-medium">Northeast</td>
+              <td class="py-2 px-2.5 font-mono text-[#64748B]">US</td>
+              <td class="py-2 px-2.5 text-[#17324F]">North America</td>
+              <td class="py-2 px-2.5 text-center font-bold">10</td>
+              <td class="py-2 px-2.5 text-center text-[#64748B]">27</td>
+              <td class="py-2 px-3 text-right font-bold text-[#111318]">$6.532,47</td>
+              <td class="py-2 px-3 text-right font-semibold text-[#64748B]">0,02%</td>
+            </tr>
+            <tr class="hover:bg-[#F8FAFC] transition-colors">
+              <td class="py-2 px-3 font-bold text-[#64748B]">10</td>
+              <td class="py-2 px-3 font-medium">Central</td>
+              <td class="py-2 px-2.5 font-mono text-[#64748B]">US</td>
+              <td class="py-2 px-2.5 text-[#17324F]">North America</td>
+              <td class="py-2 px-2.5 text-center font-bold">9</td>
+              <td class="py-2 px-2.5 text-center text-[#64748B]">20</td>
+              <td class="py-2 px-3 text-right font-bold text-[#111318]">$3.000,83</td>
+              <td class="py-2 px-3 text-right font-semibold text-[#64748B]">0,01%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="mt-4 pt-3 border-t border-[#DCEBFE] flex items-center justify-between text-[11.5px] text-[#64748B]">
+        <span>Total 10 wilayah merepresentasikan <strong>100% omzet online</strong> ($29.358.677,22 • 27.659 pesanan).</span>
+        <button onclick="showQueryModal('P4'); closeTerritoryModal();" class="font-bold text-[#2379F5] hover:text-[#111318] underline cursor-pointer">Lihat Kueri SQL (P4)</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Interactive JavaScript logic with real DW slices -->
   <script>
     let currentYear = 'ALL';
@@ -1039,6 +1357,134 @@ GROUP BY s.ship_method_name ORDER BY total_orders DESC;</pre>
       document.getElementById('val-kpi-freq-badge').innerText = formatIdNumber(freq, 2) + ' Pesanan';
     }
 
+    function toggleTopProducts() {
+      const extra = document.getElementById('extra-products');
+      const btnText = document.getElementById('btn-toggle-products-text');
+      const btnIcon = document.getElementById('btn-toggle-products-icon');
+      if (extra.classList.contains('hidden')) {
+        extra.classList.remove('hidden');
+        btnText.innerText = 'Sembunyikan Top 4–10 Produk';
+        btnIcon.style.transform = 'rotate(180deg)';
+      } else {
+        extra.classList.add('hidden');
+        btnText.innerText = 'Tampilkan Top 4–10 Produk';
+        btnIcon.style.transform = 'rotate(0deg)';
+      }
+    }
+
+    function showCustomerModal() {
+      document.getElementById('customer-modal').classList.remove('hidden');
+    }
+
+    function closeCustomerModal() {
+      document.getElementById('customer-modal').classList.add('hidden');
+    }
+
+    function showTerritoryModal() {
+      document.getElementById('territory-modal').classList.remove('hidden');
+    }
+
+    function closeTerritoryModal() {
+      document.getElementById('territory-modal').classList.add('hidden');
+    }
+
+    function exportSummaryCSV() {
+      const reg = document.getElementById('flt-region').value || 'ALL';
+      const cat = document.getElementById('flt-category').value || 'ALL';
+      const key = `${currentYear}|${reg}|${cat}`;
+      const [sales, orders, cust, units, disc] = DW_SLICES[key] || [0, 0, 0, 0, 0];
+      const aov = orders > 0 ? (sales / orders).toFixed(2) : '0.00';
+      const freq = cust > 0 ? (orders / cust).toFixed(2) : '0.00';
+
+      const csvLines = [];
+      
+      // Bagian 1: Ringkasan Eksekutif KPI (Sesuai Filter Aktif)
+      csvLines.push("=== BAGIAN 1: RINGKASAN EKSEKUTIF KPI (FILTER AKTIF) ===");
+      csvLines.push("Tahun Filter,Wilayah Filter,Kategori Filter,Nilai Penjualan ($),Jumlah Pesanan,Pelanggan Aktif,Total Unit Terjual,Estimasi Diskon Promosi ($),AOV ($),Frekuensi Pesanan");
+      csvLines.push(`"${currentYear}","${reg}","${cat}",${sales.toFixed(2)},${orders},${cust},${units},${disc.toFixed(2)},${aov},${freq}`);
+      csvLines.push("");
+
+      // Bagian 2: Kategori Produk (PB-02)
+      csvLines.push("=== BAGIAN 2: KINERJA KATEGORI PRODUK (PB-02) ===");
+      csvLines.push("Peringkat,Kategori Produk,Unit Terjual,Nilai Penjualan ($),Pangsa Pasar (%),Harga Rata-rata per Unit ($)");
+      csvLines.push('1,"Bikes",15205,28318144.65,"96.46%",1862.42');
+      csvLines.push('2,"Accessories",36092,700759.96,"2.39%",19.42');
+      csvLines.push('3,"Clothing",9101,339772.61,"1.16%",37.33');
+      csvLines.push('TOTAL,"Semua Kategori",60398,29358677.22,"100.00%",486.09');
+      csvLines.push("");
+
+      // Bagian 3: Top 10 Produk Terlaris (PB-02)
+      csvLines.push("=== BAGIAN 3: TOP 10 PRODUK TERLARIS ONLINE (PB-02) ===");
+      csvLines.push("Peringkat,Nama Produk,Kategori,Unit Terjual,Nilai Penjualan ($)");
+      csvLines.push('1,"Mountain-200 Black 46","Bikes",620,1373469.55');
+      csvLines.push('2,"Mountain-200 Black 42","Bikes",614,1363142.09');
+      csvLines.push('3,"Mountain-200 Silver 38","Bikes",596,1339462.79');
+      csvLines.push('4,"Mountain-200 Silver 46","Bikes",580,1301100.10');
+      csvLines.push('5,"Mountain-200 Black 38","Bikes",582,1294866.14');
+      csvLines.push('6,"Mountain-200 Silver 42","Bikes",560,1257434.57');
+      csvLines.push('7,"Road-150 Red 48","Bikes",337,1205876.99');
+      csvLines.push('8,"Road-150 Red 62","Bikes",336,1202298.72');
+      csvLines.push('9,"Road-150 Red 52","Bikes",302,1080637.54');
+      csvLines.push('10,"Road-150 Red 56","Bikes",295,1055589.65');
+      csvLines.push("");
+
+      // Bagian 4: 10 Wilayah Pemasaran (PB-04)
+      csvLines.push("=== BAGIAN 4: PERFORMA 10 WILAYAH PEMASARAN (PB-04) ===");
+      csvLines.push("Peringkat,Nama Wilayah,Kode Negara,Grup Wilayah,Pesanan Unik,Unit Terjual,Nilai Penjualan ($),Pangsa Pasar (%)");
+      csvLines.push('1,"Australia","AU","Pacific",6718,13345,9061000.58,"30.86%"');
+      csvLines.push('2,"Southwest","US","North America",5473,12265,5718150.81,"19.48%"');
+      csvLines.push('3,"Northwest","US","North America",4058,8993,3649866.55,"12.43%"');
+      csvLines.push('4,"United Kingdom","GB","Europe",3031,6906,3391712.21,"11.55%"');
+      csvLines.push('5,"Germany","DE","Europe",2484,5625,2894312.34,"9.86%"');
+      csvLines.push('6,"France","FR","Europe",2484,5558,2644017.71,"9.01%"');
+      csvLines.push('7,"Canada","CA","North America",3375,7620,1977844.86,"6.74%"');
+      csvLines.push('8,"Southeast","US","North America",17,39,12238.85,"0.04%"');
+      csvLines.push('9,"Northeast","US","North America",10,27,6532.47,"0.02%"');
+      csvLines.push('10,"Central","US","North America",9,20,3000.83,"0.01%"');
+      csvLines.push('TOTAL,"Semua Wilayah","-","-",27659,60398,29358677.22,"100.00%"');
+      csvLines.push("");
+
+      // Bagian 5: Top 10 Pelanggan VIP (PB-03)
+      csvLines.push("=== BAGIAN 5: TOP 10 PELANGGAN VIP (PB-03) ===");
+      csvLines.push("Peringkat,Nama Pelanggan,Customer ID,Frekuensi Pesanan,Total Belanja ($),AOV ($)");
+      csvLines.push('1,"Nichole Nara",12301,5,13295.38,2659.08');
+      csvLines.push('2,"Kaitlyn J Henderson",12132,5,13294.27,2658.85');
+      csvLines.push('3,"Margaret He",12308,5,13269.27,2653.85');
+      csvLines.push('4,"Randall M Dominguez",12131,5,13265.99,2653.20');
+      csvLines.push('5,"Adriana L Gonzalez",12300,5,13242.70,2648.54');
+      csvLines.push('6,"Rosa K Hu",12321,5,13215.65,2643.13');
+      csvLines.push('7,"Brandi D Gill",12124,5,13195.64,2639.13');
+      csvLines.push('8,"Brad She",12307,5,13173.19,2634.64');
+      csvLines.push('9,"Francisco A Sara",12296,5,13164.64,2632.93');
+      csvLines.push('10,"Maurice M Shan",11433,6,12909.67,2151.61');
+      csvLines.push("");
+
+      // Bagian 6: Program Promosi & Diskon (PB-05)
+      csvLines.push("=== BAGIAN 6: PROGRAM PENAWARAN PROMOSI & DISKON (PB-05) ===");
+      csvLines.push("ID Penawaran,Deskripsi Promosi,Persentase Diskon (%),Jumlah Baris,Nilai Penjualan ($),Estimasi Diskon Promosi ($)");
+      csvLines.push('1,"No Discount","0%",58247,27307607.08,0.00');
+      csvLines.push('2,"Volume Discount 11 to 14","2%",2118,2005230.23,40104.60');
+      csvLines.push('14,"Touring-1000 Promotion","20%",13,30992.91,6198.58');
+      csvLines.push('13,"Touring-3000 Promotion","15%",20,14847.00,2227.05');
+      csvLines.push('TOTAL,"Semua Promosi","-",60398,29358677.22,48530.24');
+      csvLines.push("");
+
+      // Bagian 7: Pengiriman & Kualitas Kurs
+      csvLines.push("=== BAGIAN 7: DISTRIBUSI LOGISTIK & KUALITAS KURS (PB-06 & PB-07) ===");
+      csvLines.push("Kategori Audit,Keterangan,Pesanan Unik,Nilai Penjualan ($),Pangsa (%)");
+      csvLines.push('"Metode Pengiriman","XRQ - TRUCK GROUND (ship_method_id = 1)",27659,29358677.22,"100.00%"');
+      csvLines.push('"Kualitas Kurs","Tanpa Kurs (Default USD / rate_id = -1)",14860,14693465.32,"53.73%"');
+      csvLines.push('"Kualitas Kurs","Dengan Kurs (AUD/CAD/GBP/DEM/FRF)",12799,14665211.90,"46.27%"');
+
+      const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(csvLines.join("\n"));
+      const link = document.createElement("a");
+      link.setAttribute("href", csvContent);
+      link.setAttribute("download", `adventureworks_complete_report_${currentYear}_${reg}_${cat}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
     function showQueryModal(pId) {
       const modal = document.getElementById('query-modal');
       const body = document.getElementById('modal-body');
@@ -1055,6 +1501,12 @@ GROUP BY s.ship_method_name ORDER BY total_orders DESC;</pre>
           q: 'Kategori produk mana yang penjualannya paling besar?',
           vis: 'Bar chart kategori & top produk terlaris (P2)',
           sql: 'SELECT p.category_name, COUNT(DISTINCT p.product_id) AS products, SUM(f.order_qty) AS units_sold, ROUND(SUM(f.line_total), 2) AS category_sales FROM fact_online_sales f JOIN dim_product p ON f.product_key = p.product_key GROUP BY p.category_name ORDER BY category_sales DESC;'
+        },
+        'P3': {
+          title: 'Pertanyaan Bisnis 3 (Pelanggan Berulang & VIP)',
+          q: 'Berapa banyak pelanggan yang melakukan pembelian berulang dan siapa kontributor terbesar?',
+          vis: 'KPI Card Pelanggan Aktif & Modal Top 10 VIP (P3)',
+          sql: 'SELECT c.customer_id, CONCAT(c.first_name, \' \', COALESCE(c.middle_name, \'\'), \' \', c.last_name) AS customer_name, COUNT(DISTINCT f.sales_order_id) AS total_orders, ROUND(SUM(f.line_total), 2) AS total_spent FROM fact_online_sales f JOIN dim_customer c ON f.customer_key = c.customer_key GROUP BY c.customer_id, c.first_name, c.middle_name, c.last_name HAVING total_spent > 10000 ORDER BY total_spent DESC LIMIT 10;'
         },
         'P4': {
           title: 'Pertanyaan Bisnis 4 (Bar Chart Wilayah)',

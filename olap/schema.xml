@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  =============================================================================
+  SKEMA MONDRIAN OLAP: ADVENTUREWORKS ONLINE SALES CUBE
+  Kelompok 2 · Data Warehouse & OLAP · UPN "Veteran" Jawa Timur
+  File: olap/schema.xml
+  Target DBMS: MySQL/MariaDB (adventureworks_dw)
+  Standar: Pentaho Schema Workbench 3.x / Mondrian 3.x & 4.x
+  
+  Kepatuhan Ketentuan Tugas Pekan 13 / Steering Review Pekan 14:
+  1. Dimensi Waktu lewat DimensionUsage: Didefinisikan di tingkat Schema (Shared Dimension), bukan di dalam Cube.
+  2. Bulan urut dengan benar: Menggunakan ordinalColumn="bulan" (1..12) pada level Bulan.
+  3. Minimal satu Calculated Member: Disediakan [Measures].[Average Order Value] dan [Measures].[Average Unit Price].
+  4. 7 Dimensi Lengkap sesuai Star Schema V2 dan Bus Matrix Proyek.
+  =============================================================================
+-->
+<Schema name="AdventureWorksOnlineSales">
+
+  <!-- ===================================================================== -->
+  <!-- 1. SHARED DIMENSION (Dimensi Bersama di Tingkat Schema)               -->
+  <!-- Dimensi Waktu didefinisikan di luar Cube untuk pemakaian bersama       -->
+  <!-- ===================================================================== -->
+  <Dimension type="TimeDimension" name="Waktu">
+    <Hierarchy hasAll="true" allMemberName="Semua Waktu" primaryKey="tanggal_key">
+      <Table name="dim_date"/>
+      <Level name="Tahun" column="tahun" type="Numeric" uniqueMembers="true" levelType="TimeYears"/>
+      <Level name="Semester" column="semester" type="Numeric" uniqueMembers="false" levelType="TimeHalfYears"/>
+      <Level name="Kuartal" column="kuartal" type="Numeric" uniqueMembers="false" levelType="TimeQuarters"/>
+      <Level name="Bulan" column="nama_bulan" ordinalColumn="bulan" type="String" uniqueMembers="false" levelType="TimeMonths"/>
+      <Level name="Tanggal" column="tanggal" type="Date" uniqueMembers="true" levelType="TimeDays"/>
+    </Hierarchy>
+  </Dimension>
+
+  <!-- ===================================================================== -->
+  <!-- 2. CUBE UTAMA: OnlineSalesCube                                        -->
+  <!-- Tabel Fakta: fact_online_sales (Grain: Baris Detail Pesanan Online)    -->
+  <!-- ===================================================================== -->
+  <Cube name="OnlineSalesCube" defaultMeasure="Sales Amount" cache="true" enabled="true">
+    <Table name="fact_online_sales"/>
+
+    <!-- PENGGUNAAN DIMENSI WAKTU LEWAT DimensionUsage -->
+    <DimensionUsage name="Waktu" source="Waktu" foreignKey="tanggal_key"/>
+
+    <!-- 2.1 Dimensi Produk -->
+    <Dimension name="Produk" foreignKey="product_key">
+      <Hierarchy hasAll="true" allMemberName="Semua Produk" primaryKey="product_key">
+        <Table name="dim_product"/>
+        <Level name="Kategori" column="category_name" type="String" uniqueMembers="false"/>
+        <Level name="Subkategori" column="subcategory_name" type="String" uniqueMembers="false"/>
+        <Level name="Produk" column="product_id" nameColumn="product_name" type="Numeric" uniqueMembers="false"/>
+      </Hierarchy>
+    </Dimension>
+
+    <!-- 2.2 Dimensi Pelanggan -->
+    <Dimension name="Pelanggan" foreignKey="customer_key">
+      <Hierarchy hasAll="true" allMemberName="Semua Pelanggan" primaryKey="customer_key">
+        <Table name="dim_customer"/>
+        <Level name="Tipe Pelanggan" column="customer_type" type="String" uniqueMembers="false"/>
+        <Level name="Pelanggan" column="customer_id" nameColumn="customer_name" type="Numeric" uniqueMembers="false"/>
+      </Hierarchy>
+    </Dimension>
+
+    <!-- 2.3 Dimensi Wilayah -->
+    <Dimension name="Wilayah" foreignKey="territory_key">
+      <Hierarchy hasAll="true" allMemberName="Semua Wilayah" primaryKey="territory_key">
+        <Table name="dim_territory"/>
+        <Level name="Grup Wilayah" column="territory_group" type="String" uniqueMembers="false"/>
+        <Level name="Negara" column="country_code" type="String" uniqueMembers="false"/>
+        <Level name="Wilayah" column="territory_id" nameColumn="territory_name" type="Numeric" uniqueMembers="false"/>
+      </Hierarchy>
+    </Dimension>
+
+    <!-- 2.4 Dimensi Promosi -->
+    <Dimension name="Promosi" foreignKey="promotion_key">
+      <Hierarchy hasAll="true" allMemberName="Semua Promosi" primaryKey="promotion_key">
+        <Table name="dim_promotion"/>
+        <Level name="Kategori Promosi" column="category" type="String" uniqueMembers="false"/>
+        <Level name="Tipe Promosi" column="type" type="String" uniqueMembers="false"/>
+        <Level name="Penawaran" column="special_offer_id" nameColumn="description" type="Numeric" uniqueMembers="false"/>
+      </Hierarchy>
+    </Dimension>
+
+    <!-- 2.5 Dimensi Mata Uang & Kurs -->
+    <Dimension name="Mata Uang" foreignKey="currency_key">
+      <Hierarchy hasAll="true" allMemberName="Semua Mata Uang" primaryKey="currency_key">
+        <Table name="dim_currency"/>
+        <Level name="Mata Uang Asal" column="from_currency_code" type="String" uniqueMembers="false"/>
+        <Level name="Mata Uang Tujuan" column="to_currency_code" type="String" uniqueMembers="false"/>
+        <Level name="ID Kurs" column="currency_rate_id" type="Numeric" uniqueMembers="false"/>
+      </Hierarchy>
+    </Dimension>
+
+    <!-- 2.6 Dimensi Metode Pengiriman -->
+    <Dimension name="Metode Kirim" foreignKey="ship_method_key">
+      <Hierarchy hasAll="true" allMemberName="Semua Metode Kirim" primaryKey="ship_method_key">
+        <Table name="dim_ship_method"/>
+        <Level name="Metode Pengiriman" column="ship_method_id" nameColumn="ship_method_name" type="Numeric" uniqueMembers="false"/>
+      </Hierarchy>
+    </Dimension>
+
+    <!-- =================================================================== -->
+    <!-- 3. MEASURES DASAR (BASE MEASURES)                                   -->
+    <!-- =================================================================== -->
+    <Measure name="Sales Amount" column="line_total" aggregator="sum" formatString="$#,##0.00"/>
+    <Measure name="Order Quantity" column="order_qty" aggregator="sum" formatString="#,##0"/>
+    <Measure name="Distinct Orders" column="sales_order_id" aggregator="distinct-count" formatString="#,##0"/>
+    <Measure name="Active Customers" column="customer_key" aggregator="distinct-count" formatString="#,##0"/>
+    <Measure name="Total Rows" column="sales_detail_key" aggregator="count" formatString="#,##0"/>
+
+    <!-- =================================================================== -->
+    <!-- 4. CALCULATED MEMBERS (Anggota Terhitung)                            -->
+    <!-- =================================================================== -->
+    <!-- 4.1 Average Order Value (AOV): Rata-rata Nilai per Transaksi Unik -->
+    <CalculatedMember name="Average Order Value" dimension="Measures"
+      formula="IIf([Measures].[Distinct Orders] = 0, NULL, [Measures].[Sales Amount] / [Measures].[Distinct Orders])">
+      <CalculatedMemberProperty name="FORMAT_STRING" value="$#,##0.00"/>
+    </CalculatedMember>
+
+    <!-- 4.2 Average Unit Price: Rata-rata Nilai per Satuan Unit Terjual -->
+    <CalculatedMember name="Average Unit Price" dimension="Measures"
+      formula="IIf([Measures].[Order Quantity] = 0, NULL, [Measures].[Sales Amount] / [Measures].[Order Quantity])">
+      <CalculatedMemberProperty name="FORMAT_STRING" value="$#,##0.00"/>
+    </CalculatedMember>
+
+  </Cube>
+</Schema>

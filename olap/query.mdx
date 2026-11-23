@@ -1,0 +1,238 @@
+-- =============================================================================
+-- KOLEKSI KUERI MDX & SQL PEMBANDING — ADVENTUREWORKS ONLINE SALES CUBE
+-- Kelompok 2 · Data Warehouse & OLAP · UPN "Veteran" Jawa Timur
+-- Berkas: olap/query.mdx
+-- Skema Acuan: olap/schema.xml (OnlineSalesCube)
+-- Database Target: MySQL/MariaDB (adventureworks_dw)
+--
+-- Ketentuan Tugas Pekan 13 (Dilaporkan di Steering Review Pekan 14):
+-- 1. Minimal 5 Kueri MDX teruji (disediakan 7 kueri lengkap menjawab PB-01 s.d. PB-07).
+-- 2. Setiap kueri diberi nomor pertanyaan bisnis yang dijawabnya.
+-- 3. Setiap kueri dilengkapi kueri SQL pembanding dengan angka yang sama persis.
+-- 4. Menggunakan calculated member [Measures].[Average Order Value] dan [Measures].[Average Unit Price].
+-- =============================================================================
+
+-- =============================================================================
+-- KUERI 1 — PERTANYAAN BISNIS 1 (PB-01)
+-- Pertanyaan: Bagaimana tren nilai penjualan online setiap bulan/tahun?
+-- Tujuan Analisis: Mengamati pertumbuhan omzet, volume unit, dan transaksi per periode kalender.
+-- =============================================================================
+
+-- [MDX PB-01]
+SELECT
+  {[Measures].[Sales Amount], [Measures].[Order Quantity], [Measures].[Distinct Orders], [Measures].[Average Order Value]} ON COLUMNS,
+  NON EMPTY [Waktu].[Tahun].Members ON ROWS
+FROM [OnlineSalesCube];
+
+-- [MDX PB-01 Detail Bulanan]
+SELECT
+  {[Measures].[Sales Amount], [Measures].[Order Quantity], [Measures].[Distinct Orders]} ON COLUMNS,
+  NON EMPTY [Waktu].[Bulan].Members ON ROWS
+FROM [OnlineSalesCube];
+
+-- [SQL Pembanding PB-01]
+SELECT 
+  d.tahun,
+  COUNT(DISTINCT f.sales_order_id) AS distinct_orders,
+  SUM(f.order_qty) AS order_quantity,
+  ROUND(SUM(f.line_total), 2) AS sales_amount,
+  ROUND(SUM(f.line_total) / COUNT(DISTINCT f.sales_order_id), 2) AS average_order_value
+FROM fact_online_sales f
+JOIN dim_date d ON f.tanggal_key = d.tanggal_key
+GROUP BY d.tahun
+ORDER BY d.tahun;
+
+-- Hasil Baseline Terverifikasi (Kecocokan 100%):
+-- 2011: 1.201 Pesanan |  1.201 Unit | $3.863.120,21 | AOV: $3.216,59
+-- 2012: 2.743 Pesanan |  2.743 Unit | $6.390.599,95 | AOV: $2.329,78
+-- 2013: 12.584 Pesanan| 28.959 Unit | $10.732.127,33| AOV: $852,84
+-- 2014: 11.131 Pesanan| 27.495 Unit | $8.372.829,73 | AOV: $752,21
+-- TOTAL CUBE: 27.659 Pesanan | 60.398 Unit | $29.358.677,22 | AOV: $1.061,45
+
+
+-- =============================================================================
+-- KUERI 2 — PERTANYAAN BISNIS 2 (PB-02)
+-- Pertanyaan: Kategori produk mana yang penjualannya paling besar?
+-- Tujuan Analisis: Mengidentifikasi pilar produk penghasil omzet terbesar dan harga rata-rata unit.
+-- =============================================================================
+
+-- [MDX PB-02]
+SELECT
+  {[Measures].[Sales Amount], [Measures].[Order Quantity], [Measures].[Average Unit Price]} ON COLUMNS,
+  ORDER([Produk].[Kategori].Members, [Measures].[Sales Amount], BDESC) ON ROWS
+FROM [OnlineSalesCube];
+
+-- [SQL Pembanding PB-02]
+SELECT 
+  p.category_name AS kategori,
+  ROUND(SUM(f.line_total), 2) AS sales_amount,
+  SUM(f.order_qty) AS order_quantity,
+  ROUND(SUM(f.line_total) / SUM(f.order_qty), 2) AS average_unit_price
+FROM fact_online_sales f
+JOIN dim_product p ON f.product_key = p.product_key
+GROUP BY p.category_name
+ORDER BY sales_amount DESC;
+
+-- Hasil Baseline Terverifikasi (Kecocokan 100%):
+-- 1. Bikes       : $28.318.144,65 (96,46%) | 15.205 Unit | Avg Unit Price: $1.862,42
+-- 2. Accessories :    $700.759,96  (2,39%) | 36.092 Unit | Avg Unit Price: $19,42
+-- 3. Clothing    :    $339.772,61  (1,16%) |  9.101 Unit | Avg Unit Price: $37,33
+-- TOTAL          : $29.358.677,22 (100,0%) | 60.398 Unit | Avg Unit Price: $486,09
+
+
+-- =============================================================================
+-- KUERI 3 — PERTANYAAN BISNIS 3 (PB-03)
+-- Pertanyaan: Pelanggan mana yang memberikan kontribusi terbesar pada penjualan online?
+-- Tujuan Analisis: Menemukan 10 pelanggan VIP teratas beserta frekuensi pesanan dan AOV.
+-- =============================================================================
+
+-- [MDX PB-03]
+SELECT
+  {[Measures].[Sales Amount], [Measures].[Distinct Orders], [Measures].[Average Order Value]} ON COLUMNS,
+  TOPCOUNT([Pelanggan].[Pelanggan].Members, 10, [Measures].[Sales Amount]) ON ROWS
+FROM [OnlineSalesCube];
+
+-- [SQL Pembanding PB-03]
+SELECT 
+  c.customer_id,
+  c.customer_name,
+  ROUND(SUM(f.line_total), 2) AS sales_amount,
+  COUNT(DISTINCT f.sales_order_id) AS distinct_orders,
+  ROUND(SUM(f.line_total) / COUNT(DISTINCT f.sales_order_id), 2) AS average_order_value
+FROM fact_online_sales f
+JOIN dim_customer c ON f.customer_key = c.customer_key
+GROUP BY c.customer_id, c.customer_name
+ORDER BY sales_amount DESC
+LIMIT 10;
+
+-- Hasil Baseline Terverifikasi (Kecocokan 100%):
+--  1. Nichole Nara        (ID: 12301) | $13.295,38 | 5 Pesanan | AOV: $2.659,08
+--  2. Kaitlyn J Henderson (ID: 12132) | $13.294,27 | 5 Pesanan | AOV: $2.658,85
+--  3. Margaret He         (ID: 12308) | $13.269,27 | 5 Pesanan | AOV: $2.653,85
+--  4. Randall M Dominguez (ID: 12131) | $13.265,99 | 5 Pesanan | AOV: $2.653,20
+--  5. Adriana L Gonzalez  (ID: 12300) | $13.242,70 | 5 Pesanan | AOV: $2.648,54
+--  6. Rosa K Hu           (ID: 12321) | $13.215,65 | 5 Pesanan | AOV: $2.643,13
+--  7. Brandi D Gill       (ID: 12124) | $13.195,64 | 5 Pesanan | AOV: $2.639,13
+--  8. Brad She            (ID: 12307) | $13.173,19 | 5 Pesanan | AOV: $2.634,64
+--  9. Francisco A Sara    (ID: 12296) | $13.164,64 | 5 Pesanan | AOV: $2.632,93
+-- 10. Maurice M Shan      (ID: 11433) | $12.909,67 | 6 Pesanan | AOV: $2.151,61
+
+
+-- =============================================================================
+-- KUERI 4 — PERTANYAAN BISNIS 4 (PB-04)
+-- Pertanyaan: Wilayah mana yang mencatat transaksi dan nilai penjualan online terbesar?
+-- Tujuan Analisis: Pemetaan omzet global berdasarkan 3 grup wilayah (North America, Pacific, Europe).
+-- =============================================================================
+
+-- [MDX PB-04]
+SELECT
+  {[Measures].[Sales Amount], [Measures].[Distinct Orders], [Measures].[Average Order Value]} ON COLUMNS,
+  ORDER([Wilayah].[Grup Wilayah].Members, [Measures].[Sales Amount], BDESC) ON ROWS
+FROM [OnlineSalesCube];
+
+-- [SQL Pembanding PB-04]
+SELECT 
+  t.territory_group AS grup_wilayah,
+  ROUND(SUM(f.line_total), 2) AS sales_amount,
+  COUNT(DISTINCT f.sales_order_id) AS distinct_orders,
+  ROUND(SUM(f.line_total) / COUNT(DISTINCT f.sales_order_id), 2) AS average_order_value
+FROM fact_online_sales f
+JOIN dim_territory t ON f.territory_key = t.territory_key
+GROUP BY t.territory_group
+ORDER BY sales_amount DESC;
+
+-- Hasil Baseline Terverifikasi (Kecocokan 100%):
+-- 1. North America : $11.367.634,37 (38,72%) | 12.942 Pesanan | AOV: $878,35
+-- 2. Pacific       :  $9.061.000,58 (30,86%) |  6.718 Pesanan | AOV: $1.348,76
+-- 3. Europe        :  $8.930.042,26 (30,42%) |  7.999 Pesanan | AOV: $1.116,39
+-- TOTAL            : $29.358.677,22 (100,0%) | 27.659 Pesanan | AOV: $1.061,45
+
+
+-- =============================================================================
+-- KUERI 5 — PERTANYAAN BISNIS 5 (PB-05)
+-- Pertanyaan: Bagaimana distribusi nilai penjualan online menurut penawaran/promosi?
+-- Tujuan Analisis: Mengukur efektivitas program diskon dan perbandingan penjualan normal vs promo.
+-- =============================================================================
+
+-- [MDX PB-05]
+SELECT
+  {[Measures].[Sales Amount], [Measures].[Order Quantity], [Measures].[Total Rows]} ON COLUMNS,
+  ORDER([Promosi].[Penawaran].Members, [Measures].[Sales Amount], BDESC) ON ROWS
+FROM [OnlineSalesCube];
+
+-- [SQL Pembanding PB-05]
+SELECT 
+  p.special_offer_id,
+  p.description AS program_promosi,
+  p.discount_pct,
+  ROUND(SUM(f.line_total), 2) AS sales_amount,
+  SUM(f.order_qty) AS order_quantity,
+  COUNT(*) AS total_rows
+FROM fact_online_sales f
+JOIN dim_promotion p ON f.promotion_key = p.promotion_key
+GROUP BY p.special_offer_id, p.description, p.discount_pct
+ORDER BY sales_amount DESC;
+
+-- Hasil Baseline Terverifikasi (Kecocokan 100%):
+-- 1. No Discount (0%)               : $27.307.607,08 | 58.247 Unit | 58.247 Baris
+-- 2. Volume Discount 11 to 14 (2%)  :  $2.005.230,23 |  2.118 Unit |  2.118 Baris
+-- 3. Touring-1000 Promotion (20%)   :     $30.992,91 |     13 Unit |     13 Baris
+-- 4. Touring-3000 Promotion (15%)   :     $14.847,00 |     20 Unit |     20 Baris
+-- TOTAL PENJUALAN                   : $29.358.677,22 | 60.398 Unit | 60.398 Baris
+
+
+-- =============================================================================
+-- KUERI 6 — PERTANYAAN BISNIS 6 (PB-06)
+-- Pertanyaan: Bagaimana kelengkapan informasi kurs & distribusi valuta transaksi?
+-- Tujuan Analisis: Memvalidasi proporsi pesanan dengan kurs vs tanpa kurs (default USD).
+-- =============================================================================
+
+-- [MDX PB-06]
+SELECT
+  {[Measures].[Sales Amount], [Measures].[Distinct Orders]} ON COLUMNS,
+  NON EMPTY [Mata Uang].[Mata Uang Tujuan].Members ON ROWS
+FROM [OnlineSalesCube];
+
+-- [SQL Pembanding PB-06]
+SELECT 
+  CASE WHEN c.currency_rate_id = -1 THEN 'Tanpa Kurs (Default USD)' ELSE 'Dengan Kurs' END AS status_kurs,
+  c.to_currency_code AS mata_uang_tujuan,
+  COUNT(DISTINCT f.sales_order_id) AS distinct_orders,
+  ROUND(SUM(f.line_total), 2) AS sales_amount
+FROM fact_online_sales f
+JOIN dim_currency c ON f.currency_key = c.currency_key
+GROUP BY status_kurs, c.to_currency_code
+ORDER BY distinct_orders DESC;
+
+-- Hasil Baseline Terverifikasi (Kecocokan 100%):
+-- Tanpa Kurs (Default USD) : 14.860 Pesanan (53,73%) | $14.693.465,32
+-- Dengan Kurs (AUD/CAD/dll): 12.799 Pesanan (46,27%) | $14.665.211,90
+-- TOTAL                    : 27.659 Pesanan (100,0%) | $29.358.677,22
+
+
+-- =============================================================================
+-- KUERI 7 — PERTANYAAN BISNIS 7 (PB-07)
+-- Pertanyaan: Bagaimana sebaran pesanan online menurut metode pengiriman?
+-- Tujuan Analisis: Mengaudit metode logistik yang digunakan pada seluruh pesanan online.
+-- =============================================================================
+
+-- [MDX PB-07]
+SELECT
+  {[Measures].[Sales Amount], [Measures].[Distinct Orders], [Measures].[Order Quantity]} ON COLUMNS,
+  [Metode Kirim].[Metode Pengiriman].Members ON ROWS
+FROM [OnlineSalesCube];
+
+-- [SQL Pembanding PB-07]
+SELECT 
+  s.ship_method_id,
+  s.ship_method_name,
+  ROUND(SUM(f.line_total), 2) AS sales_amount,
+  COUNT(DISTINCT f.sales_order_id) AS distinct_orders,
+  SUM(f.order_qty) AS order_quantity
+FROM fact_online_sales f
+JOIN dim_ship_method s ON f.ship_method_key = s.ship_method_key
+GROUP BY s.ship_method_id, s.ship_method_name
+ORDER BY sales_amount DESC;
+
+-- Hasil Baseline Terverifikasi (Kecocokan 100%):
+-- 1. XRQ - TRUCK GROUND (ID: 1): 27.659 Pesanan (100,0%) | 60.398 Unit | $29.358.677,22
