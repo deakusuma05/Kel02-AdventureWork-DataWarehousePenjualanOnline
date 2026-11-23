@@ -1,0 +1,154 @@
+﻿/* Kelompok 2 — client aggregation of all source fact rows. No transaction samples. */
+'use strict';
+(() => {
+  const SNAPSHOT_URL = 'assets/data/snapshot.json';
+  const LIVE_URL = 'api/dashboard.php';
+  const SCALE = 10000;
+  const $ = (id) => document.getElementById(id);
+  const number = new Intl.NumberFormat('id-ID');
+  const decimal = new Intl.NumberFormat('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  const percent = (value) => `${new Intl.NumberFormat('id-ID', {maximumFractionDigits: 1}).format(value)}%`;
+  const amount = (scaled) => decimal.format(scaled / SCALE);
+  const text = (id, value) => { $(id).textContent = String(value); };
+  const element = (tag, value, className) => { const n = document.createElement(tag); if (value !== undefined) n.textContent = String(value); if (className) n.className = className; return n; };
+  const svgElement = (tag, attributes = {}, value) => { const n = document.createElementNS('http://www.w3.org/2000/svg', tag); Object.entries(attributes).forEach(([key, val]) => n.setAttribute(key, String(val))); if (value !== undefined) n.textContent = String(value); return n; };
+  const names = {overview:'Ringkasan Penjualan', product:'Produk dan Pelanggan', market:'Wilayah dan Promosi', operations:'Kurs dan Pengiriman', olap:'Jelajahi Data (OLAP)', audit:'Pemeriksaan Data'};
+  const dimensions = [['dim_date','tanggal_key'],['dim_product','product_key'],['dim_customer','customer_key'],['dim_territory','territory_key'],['dim_promotion','promotion_key'],['dim_currency','currency_key'],['dim_ship_method','ship_method_key']];
+  const state = {data:null,rows:[],filtered:[],groups:null,view:'overview',mode:'snapshot',path:[],selected:null,customerPage:0,request:0};
+  const EMPTY = 'Tidak ada data untuk pilihan ini.';
+  let controller;
+  function empty(parent) { parent.replaceChildren(element('p', EMPTY, 'empty-state')); }
+  function measureValue(group, measure) { return measure === 'orders' ? group.orders.size : measure === 'units' ? group.units : group.revenue; }
+  function newGroup(label, id, row) { return {label:String(label ?? 'Tidak diketahui'), id:String(id), row, revenue:0, units:0, details:0, orders:new Set()}; }
+  function add(map, id, label, row) { const key = String(id); let item = map.get(key); if (!item) { item = newGroup(label,key,row); map.set(key,item); } item.revenue += row.line_total_scaled; item.units += row.order_qty; item.details++; item.orders.add(row.sales_order_id); return item; }
+  function ranked(map, measure='revenue') { return [...map.values()].sort((a,b) => measureValue(b,measure) - measureValue(a,measure) || a.label.localeCompare(b.label)); }
+  function validate(payload) {
+    if (!payload || payload.schema_version !== 1 || payload.meta?.money_scale !== SCALE || !Array.isArray(payload.fact_columns) || !Array.isArray(payload.facts) || !payload.dimensions) throw new Error('Format snapshot tidak sesuai kontrak data.');
+    const required = ['sales_detail_key','sales_order_id','order_qty','line_total_scaled','unit_price_scaled','unit_price_discount_scaled',...dimensions.map(([,key])=>key)];
+    if (new Set(payload.fact_columns).size !== payload.fact_columns.length || required.some(key=>!payload.fact_columns.includes(key))) throw new Error('Kolom fakta wajib tidak lengkap.');
+    for (const [table] of dimensions) if (!payload.dimensions[table] || typeof payload.dimensions[table] !== 'object') throw new Error('Referensi dimensi tidak lengkap.');
+    let total = 0;
+    const rows = payload.facts.map(values => {
+      if (!Array.isArray(values) || values.length !== payload.fact_columns.length || values.some(value=>!Number.isSafeInteger(value))) throw new Error('Nilai fakta bukan integer yang aman.');
+      const row = Object.fromEntries(payload.fact_columns.map((key,index)=>[key,values[index]]));
+      total += row.line_total_scaled;
+      row.refs = {}; row.missing = []; row.unknown = [];
+      for (const [table,key] of dimensions) { const dim = payload.dimensions[table][row[key]]; row.refs[table] = dim || {}; if (!dim) row.missing.push(table); else if (row[key] === -1) row.unknown.push(table); }
+      const d=row.refs.dim_date, p=row.refs.dim_product, c=row.refs.dim_customer, t=row.refs.dim_territory, currency=row.refs.dim_currency;
+      row.date = d.tanggal || 'Tidak diketahui'; row.year = d.tahun == null ? 'Tidak diketahui' : String(d.tahun); row.month = d.tanggal ? String(d.tanggal).slice(0,7) : 'Tidak diketahui';
+      row.category=p.category_name || 'Tidak diketahui'; row.territory=t.territory_name || 'Tidak diketahui'; row.customerId = c.customer_id > 0 ? String(c.customer_id) : null;
+      row.hasRate = Number(currency.currency_rate_id) > 0; row.currency = row.hasRate ? (currency.to_currency_code || 'Kode tujuan tidak diketahui') : 'Tanpa referensi kurs';
+      return row;
+    });
+    if (!Number.isSafeInteger(total)) throw new Error('Total penjualan melebihi ketelitian integer browser.');
+    return rows;
+  }
+  function populateFilters() {
+    const lists = [['year-filter','Semua tahun',r=>r.year],['region-filter','Seluruh wilayah',r=>r.territory],['category-filter','Seluruh kategori',r=>r.category]];
+    for (const [id,label,get] of lists) { const select=$(id); const old=select.value; select.replaceChildren(new Option(label,'')); [...new Set(state.rows.map(get))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true})).forEach(value=>select.add(new Option(value,value))); if ([...select.options].some(option=>option.value===old)) select.value=old; }
+  }
+  function summarize(rows) {
+    const g={orders:new Set(),customers:new Set(),details:new Set(),withRate:new Set(),withoutRate:new Set(),revenue:0,units:0,discountRows:0,estimatedDiscount:0,taggedRevenue:0,missing:0,unknown:0,missingBy:new Map(),unknownBy:new Map()};
+    for (const key of ['months','products','categories','customersMap','territories','regions','promotions','currencies','ships']) g[key]=new Map();
+    for (const row of rows) {
+      const {dim_product:p,dim_customer:c,dim_territory:t,dim_promotion:promo,dim_ship_method:ship}=row.refs;
+      g.orders.add(row.sales_order_id); g.details.add(row.sales_detail_key); if (row.customerId) g.customers.add(row.customerId); g.revenue+=row.line_total_scaled; g.units+=row.order_qty;
+      (row.hasRate?g.withRate:g.withoutRate).add(row.sales_order_id); if(row.unit_price_discount_scaled>0)g.discountRows++;
+      const rate=Number(promo.discount_pct)||0; g.estimatedDiscount+=row.line_total_scaled*rate; if(rate>0)g.taggedRevenue+=row.line_total_scaled;
+      if(row.missing.length)g.missing++; if(row.unknown.length)g.unknown++;
+      row.missing.forEach(key=>g.missingBy.set(key,(g.missingBy.get(key)||0)+1)); row.unknown.forEach(key=>g.unknownBy.set(key,(g.unknownBy.get(key)||0)+1));
+      add(g.months,row.month,row.month,row); add(g.products,p.product_id ?? row.product_key,p.product_name || 'Produk tidak diketahui',row); add(g.categories,row.category,row.category,row);
+      add(g.customersMap,row.customerId || 'unknown',`${c.customer_name || 'Tidak diketahui'} · ${row.customerId || 'Unknown'}`,row);
+      add(g.territories,t.territory_id ?? row.territory_key,row.territory,row); add(g.regions,t.territory_group || 'Tidak diketahui',t.territory_group || 'Tidak diketahui',row);
+      add(g.promotions,promo.special_offer_id ?? row.promotion_key,promo.description || 'Promosi tidak diketahui',row);
+      add(g.currencies,row.currency,row.currency,row); add(g.ships,ship.ship_method_id ?? row.ship_method_key,ship.ship_method_name || 'Metode tidak diketahui',row);
+    }
+    return g;
+  }
+  function renderBars(id,groups,total,measure='revenue',limit=10) {
+    const parent=$(id);parent.replaceChildren(); const sorted=ranked(groups,measure); if(!sorted.length){empty(parent);return;}
+    const largest=measureValue(sorted[0],measure)||1;
+    for(const item of sorted.slice(0,limit)) { const value=measureValue(item,measure);const wrap=element('div',undefined,'bar-item');const top=element('div',undefined,'bar-top');top.append(element('span',item.label),element('strong',measure==='revenue'?amount(value):number.format(value)));const track=element('div',undefined,'bar-track');const fill=element('div',undefined,'bar-fill');fill.style.width=`${Math.max(0,value/largest*100)}%`;track.append(fill);const meta=element('div',undefined,'bar-meta');meta.append(element('span',percent(total?value/total*100:0)),element('span',`${number.format(item.units)} unit · ${number.format(item.orders.size)} pesanan`));wrap.append(top,track,meta);parent.append(wrap); }
+  }
+  function renderMix(id,groups) { const parent=$(id);parent.replaceChildren(); if(!groups.size){empty(parent);return;}for(const item of ranked(groups)){const wrap=element('div',undefined,'mix-item'),left=element('div'),right=element('div');left.append(element('b',item.label),element('small',`${number.format(item.orders.size)} pesanan`));right.append(element('strong',amount(item.revenue)),element('small',`${number.format(item.units)} unit`));wrap.append(left,right);parent.append(wrap);} }
+  function tableRows(id,rows) { const body=$(id);body.replaceChildren(); if(!rows.length){const tr=element('tr'),td=element('td',EMPTY);td.colSpan=body.closest('table').querySelectorAll('thead th').length;tr.append(td);body.append(tr);return;}const fragment=document.createDocumentFragment();for(const row of rows){const tr=element('tr');row.forEach((value,i)=>tr.append(element('td',value,i>=2?'numeric':undefined)));fragment.append(tr);}body.append(fragment); }
+  function renderTrend(g) {
+    const svg=$('sales-chart');svg.replaceChildren();const items=[...g.months.values()].sort((a,b)=>a.id.localeCompare(b.id));text('trend-months',number.format(items.length));
+    let detail=$('trend-data');if(!detail){detail=element('details',undefined,'trend-table');detail.id='trend-data';detail.append(element('summary','Lihat angka penjualan per bulan'));const wrap=element('div',undefined,'table-scroller'),table=element('table'),head=element('thead'),tr=element('tr');['Bulan','Nilai penjualan','Pesanan','Unit'].forEach(name=>tr.append(element('th',name)));head.append(tr);const body=element('tbody');body.id='trend-table';table.append(head,body);wrap.append(table);detail.append(wrap);svg.parentElement.after(detail);}
+    tableRows('trend-table',items.map(item=>[item.label,amount(item.revenue),number.format(item.orders.size),number.format(item.units)]));
+    if(!items.length){svg.append(svgElement('text',{x:450,y:140,'text-anchor':'middle',fill:'#597494','font-size':17},EMPTY));return;}
+    svg.append(svgElement('title',{},`Nilai penjualan ${items.length} bulan; angka lengkap tersedia pada tabel di bawah grafik.`));
+    const max=Math.max(...items.map(item=>item.revenue),1),left=75,right=880,top=20,bottom=235;
+    for(let i=0;i<=4;i++){const y=bottom-(bottom-top)*i/4;svg.append(svgElement('line',{x1:left,x2:right,y1:y,y2:y,stroke:'#e5edf7'}),svgElement('text',{x:left-10,y:y+4,'text-anchor':'end',fill:'#597494','font-size':11},new Intl.NumberFormat('id-ID',{notation:'compact',maximumFractionDigits:1}).format(max*i/4/SCALE)));}
+    const points=items.map((item,i)=>[items.length===1?(left+right)/2:left+i*(right-left)/(items.length-1),bottom-item.revenue/max*(bottom-top)]);
+    svg.append(svgElement('polygon',{points:`${points[0][0]},${bottom} ${points.map(point=>point.join(',')).join(' ')} ${points.at(-1)[0]},${bottom}`,fill:'#e0f3ff'}));
+    svg.append(svgElement('polyline',{points:points.map(point=>point.join(',')).join(' '),fill:'none',stroke:'#0789df','stroke-width':3,'stroke-linejoin':'round'}));
+    points.forEach(([x,y],i)=>{const dot=svgElement('circle',{cx:x,cy:y,r:3.4,fill:'white',stroke:'#0789df','stroke-width':2,tabindex:0,'aria-label':`${items[i].label}: ${amount(items[i].revenue)}`});dot.append(svgElement('title',{},`${items[i].label}: ${amount(items[i].revenue)} · ${number.format(items[i].orders.size)} pesanan`));svg.append(dot);if(i===0||i===items.length-1||i%Math.max(1,Math.ceil(items.length/6))===0)svg.append(svgElement('text',{x,y:263,'text-anchor':'middle',fill:'#597494','font-size':11},items[i].label));});
+  }
+  function renderCustomers() {
+    if(!state.groups)return;const query=$('customer-search').value.trim().toLocaleLowerCase('id');const items=ranked(state.groups.customersMap).filter(item=>item.label.toLocaleLowerCase('id').includes(query));
+    const pages=Math.max(1,Math.ceil(items.length/25));state.customerPage=Math.min(state.customerPage,pages-1);const start=state.customerPage*25;
+    tableRows('customers-table',items.slice(start,start+25).map((item,i)=>[number.format(start+i+1),item.label,number.format(item.orders.size),amount(item.revenue)]));
+    text('customer-search-count',`${number.format(items.length)} pelanggan cocok · pencarian mencakup seluruh hasil filter`);
+    let pagination=$('customer-pagination');if(!pagination){pagination=element('div',undefined,'customer-pagination');pagination.id='customer-pagination';const prev=element('button','← Sebelumnya');prev.id='customer-prev';prev.type='button';const info=element('span');info.id='customer-page-info';const next=element('button','Berikutnya →');next.id='customer-next';next.type='button';prev.addEventListener('click',()=>{state.customerPage--;renderCustomers();});next.addEventListener('click',()=>{state.customerPage++;renderCustomers();});pagination.append(prev,info,next);$('customers-table').closest('.table-scroller').after(pagination);}
+    $('customer-prev').disabled=state.customerPage===0;$('customer-next').disabled=state.customerPage>=pages-1;text('customer-page-info',`Halaman ${state.customerPage+1} dari ${pages} · 25 pelanggan per halaman`);
+  }
+  const hierarchy = {
+    time:[['Tahun',r=>r.year],['Kuartal',r=>`${r.year} · Q${r.refs.dim_date.kuartal ?? '?'}`],['Bulan',r=>r.month],['Tanggal',r=>r.date]],
+    product:[['Kategori',r=>r.category],['Subkategori',r=>r.refs.dim_product.subcategory_name||'Tidak diketahui'],['Produk',r=>`${r.refs.dim_product.product_name||'Tidak diketahui'} · ${r.refs.dim_product.product_id??r.product_key}`]],
+    geo:[['Grup wilayah',r=>r.refs.dim_territory.territory_group||'Tidak diketahui'],['Negara',r=>r.refs.dim_territory.country_code||'Tidak diketahui'],['Wilayah',r=>r.territory]],
+    customer:[['Tipe pelanggan',r=>r.refs.dim_customer.customer_type||'Tidak diketahui'],['Pelanggan',r=>`${r.refs.dim_customer.customer_name||'Tidak diketahui'} · ${r.customerId||'Unknown'}`]],
+    promo:[['Tipe promosi',r=>r.refs.dim_promotion.type||'Tidak diketahui'],['Program',r=>r.refs.dim_promotion.description||'Tidak diketahui']],
+    currency:[['Referensi kurs',r=>r.hasRate?'Dengan referensi kurs':'Tanpa referensi kurs'],['Kode tujuan',r=>r.currency]],
+    ship:[['Metode kirim',r=>r.refs.dim_ship_method.ship_method_name||'Tidak diketahui']]
+  };
+  function renderOlap() {
+    if(!state.groups)return;const levels=hierarchy[$('olap-hierarchy').value],depth=state.path.length,measure=$('olap-measure').value;const rows=state.filtered.filter(row=>state.path.every((member,i)=>levels[i][1](row)===member));const groups=new Map();rows.forEach(row=>{const label=levels[depth][1](row);add(groups,label,label,row);});
+    const items=ranked(groups,measure),parent=$('olap-bars');parent.replaceChildren();if(!items.some(item=>item.id===state.selected))state.selected=null;
+    const crumb=$('drill-steps');crumb.replaceChildren(element('span','Semua data'),...state.path.map(value=>element('span',value)),element('span',levels[depth][0]));
+    if(!items.length)empty(parent);const max=items.length?measureValue(items[0],measure)||1:1;
+    // Large member sets remain searchable through the global/customer views; every member remains here.
+    const fragment=document.createDocumentFragment();for(const item of items){const button=element('button',undefined,'olap-member');button.type='button';button.dataset.member=item.id;button.setAttribute('aria-pressed',String(state.selected===item.id));button.classList.toggle('selected',state.selected===item.id);const top=element('span',undefined,'bar-top');top.append(element('span',item.label),element('strong',measure==='revenue'?amount(item.revenue):number.format(measureValue(item,measure))));const track=element('span',undefined,'bar-track');track.style.display='block';const fill=element('span',undefined,'bar-fill');fill.style.display='block';fill.style.width=`${Math.max(0,measureValue(item,measure)/max*100)}%`;track.append(fill);button.append(top,track);button.addEventListener('click',()=>{state.selected=item.id;parent.querySelectorAll('.olap-member').forEach(member=>{const selected=member.dataset.member===item.id;member.classList.toggle('selected',selected);member.setAttribute('aria-pressed',String(selected));});$('drill-next').disabled=depth>=levels.length-1;text('olap-note',`${levels[depth][0]} dipilih: ${item.label}. ${depth<levels.length-1?'Tekan Drill down untuk melihat rinciannya.':'Ini tingkat paling rinci.'}`);});fragment.append(button);}parent.append(fragment);
+    $('drill-back').disabled=depth===0;$('drill-next').disabled=depth>=levels.length-1||state.selected===null;
+    text('olap-note',`${number.format(rows.length)} detail · ${number.format(items.length)} anggota · ${levels[depth][0]}. ${depth<levels.length-1?'Pilih anggota lalu tekan Drill down.':'Tingkat paling rinci.'} Pesanan unik dihitung ulang pada setiap kelompok; jangan menjumlahkannya lintas kelompok.`);
+  }
+  function render() {
+    const g=state.groups;const orders=g.orders.size;
+    text('kpi-revenue',amount(g.revenue));$('kpi-revenue').dataset.scaled=String(g.revenue);text('kpi-orders',number.format(orders));$('kpi-orders').dataset.value=String(orders);text('kpi-customers',number.format(g.customers.size));$('kpi-customers').dataset.value=String(g.customers.size);text('kpi-aov',amount(orders?g.revenue/orders:0));
+    const dates=state.filtered.map(row=>row.date).filter(value=>/^\d{4}-\d{2}-\d{2}$/.test(value)).sort();text('date-range',dates.length?`${dates[0]} — ${dates.at(-1)}`:EMPTY);
+    renderTrend(g);renderBars('overview-categories',g.categories,g.revenue);renderBars('overview-territories',g.territories,g.revenue,'revenue',5);renderBars('product-bars',g.products,g.revenue,'revenue',10);renderMix('category-mix',g.categories);
+    text('products-units',number.format(g.units));$('products-units').dataset.value=String(g.units);text('products-category-count',g.categories.size);text('products-leading',ranked(g.products)[0]?.label||'—');renderCustomers();
+    renderBars('market-territories',g.territories,g.revenue);renderMix('region-mix',g.regions);text('tagged-sales',amount(g.taggedRevenue));text('promo-estimate',amount(g.estimatedDiscount));text('vip-count',number.format([...g.customersMap.values()].filter(item=>item.id!=='unknown'&&item.revenue>10000*SCALE).length));text('repeat-count',number.format([...g.customersMap.values()].filter(item=>item.id!=='unknown'&&item.orders.size>=2).length));
+    tableRows('promos-table',ranked(g.promotions).map(item=>[item.label,item.row.refs.dim_promotion.type||'Tidak diketahui',percent(Number(item.row.refs.dim_promotion.discount_pct||0)*100),number.format(item.details),number.format(item.orders.size),amount(item.revenue)]));
+    const pct=orders?g.withRate.size/orders*100:0;text('rate-pct',percent(pct));$('rate-donut').style.background=`conic-gradient(#0795e2 ${pct}%, #e2f1ff ${pct}% 100%)`;
+    $('rate-legend').replaceChildren();for(const [label,value] of [['Dengan referensi kurs',g.withRate.size],['Tanpa referensi kurs',g.withoutRate.size]]){const div=element('div',label);div.append(element('strong',number.format(value)));$('rate-legend').append(div);}
+    renderBars('shipping-bars',g.ships,orders,'orders');text('shipping-note',`${number.format(g.ships.size)} metode pengiriman pada ${number.format(orders)} pesanan terpilih.`);text('unknown-rate-percent',percent(orders?g.withoutRate.size/orders*100:0));
+    tableRows('currencies-table',ranked(g.currencies,'orders').map(item=>[item.label,number.format(item.orders.size),amount(item.revenue),percent(orders?item.orders.size/orders*100:0)]));
+    text('audit-rows',`${number.format(state.filtered.length)} / ${number.format(g.details.size)}`);text('audit-orders',number.format(orders));text('audit-rate',number.format(g.withoutRate.size));text('audit-discount',number.format(g.discountRows));
+    text('audit-references',`${number.format(g.missing)} detail memiliki referensi dimensi yang tidak ditemukan; ${number.format(state.filtered.length-g.missing)} detail memiliki tujuh referensi lengkap.`);
+    text('audit-unknown',`${number.format(g.unknown)} detail memakai key -1. ${[...g.unknownBy].map(([key,value])=>`${key}: ${number.format(value)} detail`).join('; ') || 'Tidak ada key -1 pada detail terpilih.'} Referensi kurs placeholder diperiksa melalui currency_rate_id, sehingga key positif belum tentu kurs diketahui.`);
+    renderOlap();$('data-content').dataset.details=String(state.filtered.length);$('data-content').dataset.orders=String(orders);$('data-content').dataset.revenueScaled=String(g.revenue);$('data-content').dataset.units=String(g.units);$('data-content').dataset.customers=String(g.customers.size);
+  }
+  function applyFilters() {
+    if(!state.data)return;const year=$('year-filter').value,region=$('region-filter').value,category=$('category-filter').value;state.filtered=state.rows.filter(row=>(!year||row.year===year)&&(!region||row.territory===region)&&(!category||row.category===category));state.groups=summarize(state.filtered);state.path=[];state.selected=null;state.customerPage=0;
+    text('active-filter-count',[year,region,category].filter(Boolean).join(' · ')||'Semua data · tanpa filter');render();
+  }
+  function resetFilters(){['year-filter','region-filter','category-filter'].forEach(id=>{$(id).value='';});$('customer-search').value='';applyFilters();}
+  function closeMenu(focus=false){$('sidebar').classList.remove('open');$('sidebar-overlay').hidden=true;$('menu-toggle').setAttribute('aria-expanded','false');if(matchMedia('(max-width: 900px)').matches)$('sidebar').inert=true;if(focus)$('menu-toggle').focus();}
+  function navigate(view){if(!names[view])return;state.view=view;for(const key of Object.keys(names))$('view-'+key).hidden=key!==view;document.querySelectorAll('[data-view]').forEach(button=>{const selected=button.dataset.view===view;button.classList.toggle('active',selected);if(selected)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');});text('crumb-current',names[view].toUpperCase());document.title=`Kelompok 2 | ${names[view]}`;closeMenu();if(view==='olap')renderOlap();}
+  function fixed(scaled){const sign=scaled<0?'-':'';const value=Math.abs(scaled);return `${sign}${Math.floor(value/SCALE)}.${String(value%SCALE).padStart(4,'0')}`;}
+  function csvCell(value){let out=String(value??'');if(/^[\s\u0000-\u001f]*[=+@-]/.test(out)||/^[\t\r\n]/.test(out))out="'"+out;return '"'+out.replaceAll('"','""')+'"';}
+  function exportCsv(){if(!state.data)return;const header=['sales_detail_key','sales_order_id','tanggal','tahun','produk','kategori','customer_id','pelanggan','wilayah','promosi','referensi_kurs','metode_kirim','order_qty','unit_price','unit_price_discount','line_total'];const lines=[header.map(csvCell).join(',')];for(const row of state.filtered)lines.push([row.sales_detail_key,row.sales_order_id,row.date,row.year,row.refs.dim_product.product_name,row.category,row.customerId||'Unknown',row.refs.dim_customer.customer_name,row.territory,row.refs.dim_promotion.description,row.currency,row.refs.dim_ship_method.ship_method_name,row.order_qty,fixed(row.unit_price_scaled),fixed(row.unit_price_discount_scaled),fixed(row.line_total_scaled)].map(csvCell).join(','));const blob=new Blob(['\uFEFF'+lines.join('\r\n')+'\r\n'],{type:'text/csv;charset=utf-8'});const link=element('a');link.href=URL.createObjectURL(blob);link.download='kelompok-2-penjualan-terfilter.csv';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(link.href),1000);}
+  async function load(mode=state.mode){const request=++state.request;if(controller)controller.abort();controller=new AbortController();state.data=null;state.rows=[];state.filtered=[];state.groups=null;$('data-content').hidden=true;$('error-banner').hidden=true;$('data-content').setAttribute('aria-busy','true');['export-button','sidebar-export'].forEach(id=>{$(id).disabled=true;});text('status-text','MEMUAT DATA');const timer=setTimeout(()=>controller.abort(),30000);try{const response=await fetch(mode==='live'?LIVE_URL:SNAPSHOT_URL,{cache:'no-cache',credentials:'same-origin',signal:controller.signal});if(!response.ok)throw new Error(`Sumber data tidak tersedia (HTTP ${response.status}).`);const payload=await response.json();const rows=validate(payload);if(request!==state.request)return;state.data=payload;state.rows=rows;state.mode=mode;populateFilters();applyFilters();const meta=payload.meta;const label=mode==='live'?'MySQL lokal':'Snapshot SQL';text('status-text',mode==='live'?'DATA MYSQL':'DATA SNAPSHOT');text('sidebar-source',`SUMBER: ${label.toUpperCase()}`);text('source-title',label);text('source-description',`${meta.source_file||'Data Warehouse lokal'} · relasi melalui surrogate key`);text('hero-source',label);text('footer-source',label);text('source-file',`Sumber: ${meta.source_file||'Data Warehouse lokal'}`);text('source-hash',meta.source_sha256||'Tidak tersedia pada sumber ini');text('hero-months',`${number.format(new Set(rows.map(row=>row.month)).size)} bulan transaksi`);const years=[...new Set(rows.map(row=>row.year))].sort();text('top-period',`PERIODE DATA · ${years[0]||'—'}–${years.at(-1)||'—'}`);if(Array.isArray(meta.notes))text('audit-source-notes',meta.notes.join(' '));$('mode-zip').classList.toggle('selected',mode==='snapshot');$('mode-live').classList.toggle('selected',mode==='live');$('mode-zip').setAttribute('aria-pressed',String(mode==='snapshot'));$('mode-live').setAttribute('aria-pressed',String(mode==='live'));$('data-content').hidden=false;['export-button','sidebar-export'].forEach(id=>{$(id).disabled=false;});}catch(error){if(request!==state.request)return;text('status-text','DATA GAGAL DIMUAT');text('error-message',error.name==='AbortError'?'Pemuatan melewati batas waktu. Periksa server lokal lalu coba lagi.':error instanceof SyntaxError?'Respons sumber bukan JSON yang valid. Jalankan dashboard melalui server HTTP yang sesuai.':error.message||'Pemuatan data gagal. Periksa server lokal.');$('error-banner').hidden=false;}finally{clearTimeout(timer);if(request===state.request)$('data-content').setAttribute('aria-busy','false');}}
+  async function probeLive(){try{const response=await fetch(LIVE_URL+'?health=1',{credentials:'same-origin',cache:'no-store'});if(!response.ok)return;const payload=await response.json();if(payload.available===true){$('mode-live').disabled=false;$('mode-live').title='Baca Data Warehouse melalui API lokal';}}catch{ /* Unavailable local API leaves the control disabled. */ }}
+  document.querySelectorAll('[data-view]').forEach(button=>button.addEventListener('click',()=>navigate(button.dataset.view)));
+  document.querySelectorAll('[data-jump]').forEach(button=>button.addEventListener('click',()=>navigate(button.dataset.jump)));
+  ['year-filter','region-filter','category-filter'].forEach(id=>$(id).addEventListener('change',applyFilters));['reset-button','sidebar-reset'].forEach(id=>$(id).addEventListener('click',resetFilters));['export-button','sidebar-export'].forEach(id=>$(id).addEventListener('click',exportCsv));
+  $('customer-search').addEventListener('input',()=>{state.customerPage=0;renderCustomers();});$('olap-hierarchy').addEventListener('change',()=>{state.path=[];state.selected=null;renderOlap();});$('olap-measure').addEventListener('change',renderOlap);$('drill-next').addEventListener('click',()=>{if(state.selected===null)return;state.path.push(state.selected);state.selected=null;renderOlap();});$('drill-back').addEventListener('click',()=>{state.selected=state.path.pop()??null;renderOlap();});
+  $('menu-toggle').setAttribute('aria-controls','sidebar');$('menu-toggle').setAttribute('aria-expanded','false');$('menu-toggle').addEventListener('click',()=>{const open=!$('sidebar').classList.contains('open');if(open){$('sidebar').inert=false;$('sidebar').classList.add('open');$('sidebar-overlay').hidden=false;$('menu-toggle').setAttribute('aria-expanded','true');$('sidebar').querySelector('button').focus();}else closeMenu(true);});$('sidebar-overlay').addEventListener('click',()=>closeMenu(true));
+  document.addEventListener('keydown',event=>{if(!$('sidebar').classList.contains('open'))return;if(event.key==='Escape'){event.preventDefault();closeMenu(true);}if(event.key==='Tab'){const controls=[...$('sidebar').querySelectorAll('button:not(:disabled),a[href]')];const first=controls[0],last=controls.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}}});
+  const mobile=matchMedia('(max-width: 900px)');const syncMobile=()=>{if(!mobile.matches){$('sidebar').inert=false;closeMenu();}else if(!$('sidebar').classList.contains('open'))$('sidebar').inert=true;};mobile.addEventListener('change',syncMobile);syncMobile();
+  $('retry-button').addEventListener('click',()=>load());$('mode-zip').addEventListener('click',()=>load('snapshot'));$('mode-live').addEventListener('click',()=>load('live'));document.querySelectorAll('.table-scroller').forEach(node=>{node.tabIndex=0;node.setAttribute('role','region');node.setAttribute('aria-label','Tabel dapat digulir horizontal');});
+  const note=element('p','Nilai penjualan dalam satuan sumber; tidak dikonversi ke mata uang lain.','summary-note');$('kpi-revenue').closest('.kpi-grid').after(note);
+  navigate('overview');load();probeLive();
+})();

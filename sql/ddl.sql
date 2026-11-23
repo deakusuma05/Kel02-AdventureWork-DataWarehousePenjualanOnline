@@ -1,32 +1,18 @@
 -- =============================================================================
--- DDL DATA WAREHOUSE: ADVENTUREWORKS ONLINE SALES
--- Kelompok 2 · Data Warehouse & OLAP · UPN "Veteran" Jawa Timur
--- File: sql/ddl.sql
--- Standar: Star Schema Versi 2 (Idempotent: Aman dijalankan berulang kali)
+-- Kelompok 2: inisialisasi non-destruktif Data Warehouse Penjualan Online.
+-- Pilih database target secara eksplisit pada koneksi sebelum menjalankan skrip.
+-- CREATE IF NOT EXISTS + INSERT anggota Unknown yang belum ada mempertahankan data.
+-- Ini bukan migrasi struktur tabel lama: bandingkan INFORMATION_SCHEMA sebelum ETL.
+-- Struktur mengikuti ETL aktif (termasuk periode biaya produk Pekan 13).
+-- Rebuild terisolasi dipisahkan ke ddl_rebuild.sql; jangan memakai dump untuk rerun.
 -- =============================================================================
-
-SET FOREIGN_KEY_CHECKS = 0;
-
--- -----------------------------------------------------------------------------
--- 1. DROP TABLES (Urutan: Tabel Fakta terlebih dahulu, baru Tabel Dimensi)
--- -----------------------------------------------------------------------------
-DROP TABLE IF EXISTS `fact_online_sales`;
-DROP TABLE IF EXISTS `dim_ship_method`;
-DROP TABLE IF EXISTS `dim_currency`;
-DROP TABLE IF EXISTS `dim_promotion`;
-DROP TABLE IF EXISTS `dim_territory`;
-DROP TABLE IF EXISTS `dim_customer`;
-DROP TABLE IF EXISTS `dim_product`;
-DROP TABLE IF EXISTS `dim_date`;
-
-SET FOREIGN_KEY_CHECKS = 1;
 
 -- -----------------------------------------------------------------------------
 -- 2. CREATE DIMENSION TABLES
 -- -----------------------------------------------------------------------------
 
--- 2.1 Dimensi Tanggal (dim_date / dim_tanggal Standar Versi 1.0)
-CREATE TABLE `dim_date` (
+-- 2.1 Dimensi kalender internal; kesesuaian standar dosen perlu dokumen resmi
+CREATE TABLE IF NOT EXISTS `dim_date` (
   `tanggal_key` int(11) NOT NULL,
   `tanggal` date NOT NULL,
   `tahun` int(11) NOT NULL,
@@ -39,23 +25,28 @@ CREATE TABLE `dim_date` (
   `hari_dalam_minggu` int(11) NOT NULL,
   `nama_hari` varchar(20) NOT NULL,
   `is_akhir_pekan` tinyint(1) NOT NULL,
-  PRIMARY KEY (`tanggal_key`)
+  PRIMARY KEY (`tanggal_key`),
+  UNIQUE KEY `uq_dim_date_tanggal` (`tanggal`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 2.2 Dimensi Produk (dim_product)
-CREATE TABLE `dim_product` (
-  `product_key` int(11) NOT NULL,
+CREATE TABLE IF NOT EXISTS `dim_product` (
+  `product_key` int(11) NOT NULL AUTO_INCREMENT,
   `product_id` int(11) NOT NULL,
   `product_name` varchar(100) DEFAULT NULL,
   `product_number` varchar(50) DEFAULT NULL,
   `subcategory_name` varchar(100) DEFAULT NULL,
   `category_name` varchar(100) DEFAULT NULL,
-  PRIMARY KEY (`product_key`)
+  `standard_cost` decimal(19,4) NOT NULL DEFAULT 0.0000,
+  `berlaku_mulai` date NOT NULL DEFAULT '1900-01-01',
+  `berlaku_sampai` date NOT NULL DEFAULT '9999-12-31',
+  PRIMARY KEY (`product_key`),
+  KEY `idx_product_period` (`product_id`, `berlaku_mulai`, `berlaku_sampai`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 2.3 Dimensi Pelanggan (dim_customer)
-CREATE TABLE `dim_customer` (
-  `customer_key` int(11) NOT NULL,
+CREATE TABLE IF NOT EXISTS `dim_customer` (
+  `customer_key` int(11) NOT NULL AUTO_INCREMENT,
   `customer_id` int(11) NOT NULL,
   `account_number` varchar(30) DEFAULT NULL,
   `customer_type` varchar(20) DEFAULT NULL,
@@ -65,8 +56,8 @@ CREATE TABLE `dim_customer` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 2.4 Dimensi Wilayah (dim_territory)
-CREATE TABLE `dim_territory` (
-  `territory_key` int(11) NOT NULL,
+CREATE TABLE IF NOT EXISTS `dim_territory` (
+  `territory_key` int(11) NOT NULL AUTO_INCREMENT,
   `territory_id` int(11) NOT NULL,
   `territory_name` varchar(50) DEFAULT NULL,
   `country_code` varchar(3) DEFAULT NULL,
@@ -75,8 +66,8 @@ CREATE TABLE `dim_territory` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 2.5 Dimensi Promosi (dim_promotion)
-CREATE TABLE `dim_promotion` (
-  `promotion_key` int(11) NOT NULL,
+CREATE TABLE IF NOT EXISTS `dim_promotion` (
+  `promotion_key` int(11) NOT NULL AUTO_INCREMENT,
   `special_offer_id` int(11) NOT NULL,
   `description` varchar(255) DEFAULT NULL,
   `discount_pct` decimal(10,4) DEFAULT NULL,
@@ -86,8 +77,8 @@ CREATE TABLE `dim_promotion` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 2.6 Dimensi Mata Uang & Kurs (dim_currency)
-CREATE TABLE `dim_currency` (
-  `currency_key` int(11) NOT NULL,
+CREATE TABLE IF NOT EXISTS `dim_currency` (
+  `currency_key` int(11) NOT NULL AUTO_INCREMENT,
   `currency_rate_id` int(11) NOT NULL,
   `from_currency_code` varchar(3) DEFAULT NULL,
   `to_currency_code` varchar(3) DEFAULT NULL,
@@ -97,8 +88,8 @@ CREATE TABLE `dim_currency` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 2.7 Dimensi Metode Pengiriman (dim_ship_method)
-CREATE TABLE `dim_ship_method` (
-  `ship_method_key` int(11) NOT NULL,
+CREATE TABLE IF NOT EXISTS `dim_ship_method` (
+  `ship_method_key` int(11) NOT NULL AUTO_INCREMENT,
   `ship_method_id` int(11) NOT NULL,
   `ship_method_name` varchar(50) DEFAULT NULL,
   `ship_base` decimal(19,4) DEFAULT NULL,
@@ -111,7 +102,7 @@ CREATE TABLE `dim_ship_method` (
 -- -----------------------------------------------------------------------------
 
 -- 3.1 Tabel Fakta Penjualan Online (fact_online_sales)
-CREATE TABLE `fact_online_sales` (
+CREATE TABLE IF NOT EXISTS `fact_online_sales` (
   `sales_detail_key` int(11) NOT NULL,
   `sales_order_id` int(11) NOT NULL,
   `tanggal_key` int(11) NOT NULL,
@@ -128,6 +119,7 @@ CREATE TABLE `fact_online_sales` (
   PRIMARY KEY (`sales_detail_key`),
   
   -- Indeks untuk optimasi query analitik OLAP
+  KEY `idx_sales_order_id` (`sales_order_id`),
   KEY `idx_fk_tanggal` (`tanggal_key`),
   KEY `idx_fk_product` (`product_key`),
   KEY `idx_fk_customer` (`customer_key`),
@@ -155,67 +147,66 @@ INSERT INTO `dim_date` (
   `tanggal_key`, `tanggal`, `tahun`, `semester`, `kuartal`, `bulan`, 
   `nama_bulan`, `minggu_dalam_tahun`, `tanggal_dalam_bulan`, `hari_dalam_minggu`, 
   `nama_hari`, `is_akhir_pekan`
-) VALUES (
-  -1, '1900-01-01', 1900, 1, 1, 1, 
+)
+SELECT -1, '1900-01-01', 1900, 1, 1, 1, 
   'Unknown', 1, 1, 1, 
   'Unknown', 0
-);
+WHERE NOT EXISTS (SELECT 1 FROM `dim_date` WHERE `tanggal_key` = -1);
 
 -- Baris -1 untuk dim_product
 INSERT INTO `dim_product` (
   `product_key`, `product_id`, `product_name`, `product_number`, 
   `subcategory_name`, `category_name`
-) VALUES (
-  -1, -1, 'Unknown Product', 'UNKNOWN', 
+)
+SELECT -1, -1, 'Unknown Product', 'UNKNOWN', 
   'Unknown Subcategory', 'Unknown Category'
-);
+WHERE NOT EXISTS (SELECT 1 FROM `dim_product` WHERE `product_key` = -1);
 
 -- Baris -1 untuk dim_customer
 INSERT INTO `dim_customer` (
   `customer_key`, `customer_id`, `account_number`, `customer_type`, 
   `customer_name`, `territory_id`
-) VALUES (
-  -1, -1, 'UNKNOWN', 'Unknown', 
+)
+SELECT -1, -1, 'UNKNOWN', 'Unknown', 
   'Unknown Customer', -1
-);
+WHERE NOT EXISTS (SELECT 1 FROM `dim_customer` WHERE `customer_key` = -1);
 
 -- Baris -1 untuk dim_territory
 INSERT INTO `dim_territory` (
   `territory_key`, `territory_id`, `territory_name`, `country_code`, 
   `territory_group`
-) VALUES (
-  -1, -1, 'Unknown Territory', 'UNK', 
+)
+SELECT -1, -1, 'Unknown Territory', 'UNK', 
   'Unknown Group'
-);
+WHERE NOT EXISTS (SELECT 1 FROM `dim_territory` WHERE `territory_key` = -1);
 
 -- Baris -1 untuk dim_promotion
 INSERT INTO `dim_promotion` (
   `promotion_key`, `special_offer_id`, `description`, `discount_pct`, 
   `type`, `category`
-) VALUES (
-  -1, -1, 'Unknown Promotion', 0.0000, 
+)
+SELECT -1, -1, 'Unknown Promotion', 0.0000, 
   'Unknown', 'Unknown'
-);
+WHERE NOT EXISTS (SELECT 1 FROM `dim_promotion` WHERE `promotion_key` = -1);
 
 -- Baris -1 untuk dim_currency
 INSERT INTO `dim_currency` (
   `currency_key`, `currency_rate_id`, `from_currency_code`, `to_currency_code`, 
   `average_rate`, `end_of_day_rate`
-) VALUES (
-  -1, -1, 'USD', 'USD', 
-  1.0000, 1.0000
-);
+)
+SELECT -1, -1, NULL, NULL, 
+  NULL, NULL
+WHERE NOT EXISTS (SELECT 1 FROM `dim_currency` WHERE `currency_key` = -1);
 
 -- Baris -1 untuk dim_ship_method
 INSERT INTO `dim_ship_method` (
   `ship_method_key`, `ship_method_id`, `ship_method_name`, `ship_base`, 
   `ship_rate`
-) VALUES (
-  -1, -1, 'Unknown Ship Method', 0.0000, 
+)
+SELECT -1, -1, 'Unknown Ship Method', 0.0000, 
   0.0000
-);
+WHERE NOT EXISTS (SELECT 1 FROM `dim_ship_method` WHERE `ship_method_key` = -1);
 
 -- =============================================================================
--- SELESAI. Skrip ini bersifat idempotent dan siap dijalankan berulang kali.
+-- SELESAI. Eksekusi ulang tidak menghapus/mengubah baris yang sudah ada.
 -- =============================================================================
-

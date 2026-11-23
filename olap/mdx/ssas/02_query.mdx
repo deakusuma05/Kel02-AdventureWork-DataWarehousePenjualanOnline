@@ -1,0 +1,1 @@
+SELECT {[Measures].[Sales Amount], [Measures].[Order Quantity]} ON COLUMNS, NON EMPTY TopCount([Produk].[Katalog].[Produk].Members,10,[Measures].[Sales Amount]) ON ROWS FROM [OnlineSalesCube]

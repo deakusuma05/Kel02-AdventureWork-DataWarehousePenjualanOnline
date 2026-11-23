@@ -1,0 +1,1060 @@
+{
+  "executed_at_utc": "2026-11-23T18:24:45.831233+00:00",
+  "engine": "8.4.6",
+  "scope": "Private MySQL datadir under .audit-temp; no operational database touched",
+  "source_sha256": {
+    "sql/adventureworks_dw (2).sql": "1c5260a59be46f3d398e0ec93c17d5730c8d0bb86885a0cfefcceda909c95aba",
+    "sql/dump_adventureworks_dw.sql": "e27634430f5f68c84b84560e1263db1c3aa19a812a3e64f94abf78ca8d3c3733"
+  },
+  "schemas": {
+    "selected": "audit_new_20261123_182405",
+    "legacy": "audit_old_20261123_182405",
+    "ddl": "audit_ddl_20261123_182405"
+  },
+  "metrics": {
+    "selected_dump": {
+      "fact_rows": "60398",
+      "unique_details": "60398",
+      "orders": "27659",
+      "units": "60398",
+      "revenue": "29358677.2207",
+      "active_customers": "18484"
+    },
+    "legacy_dump": {
+      "fact_rows": "60398",
+      "unique_details": "60398",
+      "orders": "27659",
+      "units": "60398",
+      "revenue": "29358677.2207",
+      "active_customers": "18484"
+    },
+    "safe_ddl_loaded": {
+      "fact_rows": "60398",
+      "unique_details": "60398",
+      "orders": "27659",
+      "units": "60398",
+      "revenue": "29358677.2207",
+      "active_customers": "18484"
+    }
+  },
+  "calendar": {
+    "selected_dump": {
+      "minimum": "2011-05-31",
+      "maximum": "2014-06-30",
+      "days": "1124",
+      "unique_dates": "1124",
+      "missing_days": "3",
+      "invalid_attributes": "0"
+    },
+    "safe_ddl_loaded": {
+      "minimum": "2011-05-31",
+      "maximum": "2014-06-30",
+      "days": "1127",
+      "unique_dates": "1127",
+      "missing_days": "0",
+      "invalid_attributes": "0"
+    }
+  },
+  "source_unknown_members": {
+    "dim_date": "0",
+    "dim_product": "0",
+    "dim_customer": "0",
+    "dim_territory": "0",
+    "dim_promotion": "0",
+    "dim_currency": "0",
+    "dim_ship_method": "0"
+  },
+  "ddl_unknown_members": {
+    "dim_date": "1",
+    "dim_product": "1",
+    "dim_customer": "1",
+    "dim_territory": "1",
+    "dim_promotion": "1",
+    "dim_currency": "1",
+    "dim_ship_method": "1"
+  },
+  "ddl_rerun": {
+    "status": "LULUS",
+    "all_table_hashes_before": {
+      "dim_date": "d23c62ed418e5f1c70fb3108b660e8c6bfe924a40211e505e37fc1ece943a24a",
+      "dim_product": "a16d7ceca9e6951b651e9d6043e7b3f57f00689473785cfdd11288ef58e412e5",
+      "dim_customer": "8a29b4555729a37e3359b835dfb6cd36a0cb372f010dfa9c5165deb258a6eabc",
+      "dim_territory": "adc3005d305b789643eba83b0a14e2c2baf6fe162a568dd534055fbbc9cc760e",
+      "dim_promotion": "8834914c7db8a8e038d749b8b7769658b5a91b7a9a46b7d93196993c12e18114",
+      "dim_currency": "8cc896c349e22311aa8fd934f38ca926f87e587d9718ebe7e6404e7d4e64d279",
+      "dim_ship_method": "298d8b3f7ff2c3742e9b8cab2e739752fc28891b808f84b44e90ebe74b13b675",
+      "fact_online_sales": "671347a080803b51eb0aebe3d4bf48511641282cecd0a7cd27bfcce2b9a4d652"
+    },
+    "all_table_hashes_after": {
+      "dim_date": "d23c62ed418e5f1c70fb3108b660e8c6bfe924a40211e505e37fc1ece943a24a",
+      "dim_product": "a16d7ceca9e6951b651e9d6043e7b3f57f00689473785cfdd11288ef58e412e5",
+      "dim_customer": "8a29b4555729a37e3359b835dfb6cd36a0cb372f010dfa9c5165deb258a6eabc",
+      "dim_territory": "adc3005d305b789643eba83b0a14e2c2baf6fe162a568dd534055fbbc9cc760e",
+      "dim_promotion": "8834914c7db8a8e038d749b8b7769658b5a91b7a9a46b7d93196993c12e18114",
+      "dim_currency": "8cc896c349e22311aa8fd934f38ca926f87e587d9718ebe7e6404e7d4e64d279",
+      "dim_ship_method": "298d8b3f7ff2c3742e9b8cab2e739752fc28891b808f84b44e90ebe74b13b675",
+      "fact_online_sales": "671347a080803b51eb0aebe3d4bf48511641282cecd0a7cd27bfcce2b9a4d652"
+    }
+  },
+  "constraints": {
+    "Pengujian-PK.sql": {
+      "status": "LULUS",
+      "mysql_error": 1062,
+      "message": "ERROR 1062 (23000) at line 1: Duplicate entry '-1' for key 'dim_customer.PRIMARY'"
+    },
+    "pengujian-FK.sql": {
+      "status": "LULUS",
+      "mysql_error": 1452,
+      "message": "ERROR 1452 (23000) at line 1: Cannot add or update a child row: a foreign key constraint fails (`audit_ddl_<run>`.`fact_online_sales`, CONSTRAINT `fk_fact_product` FOREIGN KEY (`product_key`) REFERENCES `dim_product` (`product_key`) ON UPDATE CASCADE)"
+    },
+    "pengujian-NotNull.sql": {
+      "status": "LULUS",
+      "mysql_error": 1048,
+      "message": "ERROR 1048 (23000) at line 1: Column 'line_total' cannot be null"
+    }
+  },
+  "rebuild": {
+    "without_confirmation": "LULUS: rejected with 1644 and all row hashes unchanged",
+    "confirmed_isolated_schema": "LULUS: all tables removed then recreated"
+  },
+  "foreign_keys": [
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "COLUMN_NAME": "currency_key",
+      "REFERENCED_TABLE_NAME": "dim_currency",
+      "REFERENCED_COLUMN_NAME": "currency_key"
+    },
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "COLUMN_NAME": "customer_key",
+      "REFERENCED_TABLE_NAME": "dim_customer",
+      "REFERENCED_COLUMN_NAME": "customer_key"
+    },
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "COLUMN_NAME": "product_key",
+      "REFERENCED_TABLE_NAME": "dim_product",
+      "REFERENCED_COLUMN_NAME": "product_key"
+    },
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "COLUMN_NAME": "promotion_key",
+      "REFERENCED_TABLE_NAME": "dim_promotion",
+      "REFERENCED_COLUMN_NAME": "promotion_key"
+    },
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "COLUMN_NAME": "ship_method_key",
+      "REFERENCED_TABLE_NAME": "dim_ship_method",
+      "REFERENCED_COLUMN_NAME": "ship_method_key"
+    },
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "COLUMN_NAME": "tanggal_key",
+      "REFERENCED_TABLE_NAME": "dim_date",
+      "REFERENCED_COLUMN_NAME": "tanggal_key"
+    },
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "COLUMN_NAME": "territory_key",
+      "REFERENCED_TABLE_NAME": "dim_territory",
+      "REFERENCED_COLUMN_NAME": "territory_key"
+    }
+  ],
+  "orphan_rows": {
+    "currency_key": "0",
+    "customer_key": "0",
+    "product_key": "0",
+    "promotion_key": "0",
+    "ship_method_key": "0",
+    "tanggal_key": "0",
+    "territory_key": "0"
+  },
+  "indexes": [
+    {
+      "TABLE_NAME": "dim_currency",
+      "INDEX_NAME": "PRIMARY",
+      "COLUMN_NAME": "currency_key",
+      "NON_UNIQUE": "0"
+    },
+    {
+      "TABLE_NAME": "dim_customer",
+      "INDEX_NAME": "PRIMARY",
+      "COLUMN_NAME": "customer_key",
+      "NON_UNIQUE": "0"
+    },
+    {
+      "TABLE_NAME": "dim_date",
+      "INDEX_NAME": "PRIMARY",
+      "COLUMN_NAME": "tanggal_key",
+      "NON_UNIQUE": "0"
+    },
+    {
+      "TABLE_NAME": "dim_date",
+      "INDEX_NAME": "uq_dim_date_tanggal",
+      "COLUMN_NAME": "tanggal",
+      "NON_UNIQUE": "0"
+    },
+    {
+      "TABLE_NAME": "dim_product",
+      "INDEX_NAME": "idx_product_period",
+      "COLUMN_NAME": "product_id",
+      "NON_UNIQUE": "1"
+    },
+    {
+      "TABLE_NAME": "dim_product",
+      "INDEX_NAME": "idx_product_period",
+      "COLUMN_NAME": "berlaku_mulai",
+      "NON_UNIQUE": "1"
+    },
+    {
+      "TABLE_NAME": "dim_product",
+      "INDEX_NAME": "idx_product_period",
+      "COLUMN_NAME": "berlaku_sampai",
+      "NON_UNIQUE": "1"
+    },
+    {
+      "TABLE_NAME": "dim_product",
+      "INDEX_NAME": "PRIMARY",
+      "COLUMN_NAME": "product_key",
+      "NON_UNIQUE": "0"
+    },
+    {
+      "TABLE_NAME": "dim_promotion",
+      "INDEX_NAME": "PRIMARY",
+      "COLUMN_NAME": "promotion_key",
+      "NON_UNIQUE": "0"
+    },
+    {
+      "TABLE_NAME": "dim_ship_method",
+      "INDEX_NAME": "PRIMARY",
+      "COLUMN_NAME": "ship_method_key",
+      "NON_UNIQUE": "0"
+    },
+    {
+      "TABLE_NAME": "dim_territory",
+      "INDEX_NAME": "PRIMARY",
+      "COLUMN_NAME": "territory_key",
+      "NON_UNIQUE": "0"
+    },
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "INDEX_NAME": "idx_fk_currency",
+      "COLUMN_NAME": "currency_key",
+      "NON_UNIQUE": "1"
+    },
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "INDEX_NAME": "idx_fk_customer",
+      "COLUMN_NAME": "customer_key",
+      "NON_UNIQUE": "1"
+    },
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "INDEX_NAME": "idx_fk_product",
+      "COLUMN_NAME": "product_key",
+      "NON_UNIQUE": "1"
+    },
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "INDEX_NAME": "idx_fk_promotion",
+      "COLUMN_NAME": "promotion_key",
+      "NON_UNIQUE": "1"
+    },
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "INDEX_NAME": "idx_fk_ship_method",
+      "COLUMN_NAME": "ship_method_key",
+      "NON_UNIQUE": "1"
+    },
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "INDEX_NAME": "idx_fk_tanggal",
+      "COLUMN_NAME": "tanggal_key",
+      "NON_UNIQUE": "1"
+    },
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "INDEX_NAME": "idx_fk_territory",
+      "COLUMN_NAME": "territory_key",
+      "NON_UNIQUE": "1"
+    },
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "INDEX_NAME": "idx_sales_order_id",
+      "COLUMN_NAME": "sales_order_id",
+      "NON_UNIQUE": "1"
+    },
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "INDEX_NAME": "PRIMARY",
+      "COLUMN_NAME": "sales_detail_key",
+      "NON_UNIQUE": "0"
+    }
+  ],
+  "columns": [
+    {
+      "TABLE_NAME": "dim_currency",
+      "COLUMN_NAME": "currency_key",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "PRI",
+      "EXTRA": "auto_increment"
+    },
+    {
+      "TABLE_NAME": "dim_currency",
+      "COLUMN_NAME": "currency_rate_id",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_currency",
+      "COLUMN_NAME": "from_currency_code",
+      "COLUMN_TYPE": "varchar(3)",
+      "IS_NULLABLE": "YES",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_currency",
+      "COLUMN_NAME": "to_currency_code",
+      "COLUMN_TYPE": "varchar(3)",
+      "IS_NULLABLE": "YES",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_currency",
+      "COLUMN_NAME": "average_rate",
+      "COLUMN_TYPE": "decimal(19,4)",
+      "IS_NULLABLE": "YES",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_currency",
+      "COLUMN_NAME": "end_of_day_rate",
+      "COLUMN_TYPE": "decimal(19,4)",
+      "IS_NULLABLE": "YES",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_customer",
+      "COLUMN_NAME": "customer_key",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "PRI",
+      "EXTRA": "auto_increment"
+    },
+    {
+      "TABLE_NAME": "dim_customer",
+      "COLUMN_NAME": "customer_id",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_customer",
+      "COLUMN_NAME": "account_number",
+      "COLUMN_TYPE": "varchar(30)",
+      "IS_NULLABLE": "YES",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_customer",
+      "COLUMN_NAME": "customer_type",
+      "COLUMN_TYPE": "varchar(20)",
+      "IS_NULLABLE": "YES",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_customer",
+      "COLUMN_NAME": "customer_name",
+      "COLUMN_TYPE": "varchar(150)",
+      "IS_NULLABLE": "YES",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_customer",
+      "COLUMN_NAME": "territory_id",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_date",
+      "COLUMN_NAME": "tanggal_key",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "PRI",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_date",
+      "COLUMN_NAME": "tanggal",
+      "COLUMN_TYPE": "date",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "UNI",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_date",
+      "COLUMN_NAME": "tahun",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_date",
+      "COLUMN_NAME": "semester",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_date",
+      "COLUMN_NAME": "kuartal",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_date",
+      "COLUMN_NAME": "bulan",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_date",
+      "COLUMN_NAME": "nama_bulan",
+      "COLUMN_TYPE": "varchar(20)",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_date",
+      "COLUMN_NAME": "minggu_dalam_tahun",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_date",
+      "COLUMN_NAME": "tanggal_dalam_bulan",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_date",
+      "COLUMN_NAME": "hari_dalam_minggu",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_date",
+      "COLUMN_NAME": "nama_hari",
+      "COLUMN_TYPE": "varchar(20)",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_date",
+      "COLUMN_NAME": "is_akhir_pekan",
+      "COLUMN_TYPE": "tinyint(1)",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_product",
+      "COLUMN_NAME": "product_key",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "PRI",
+      "EXTRA": "auto_increment"
+    },
+    {
+      "TABLE_NAME": "dim_product",
+      "COLUMN_NAME": "product_id",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "MUL",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_product",
+      "COLUMN_NAME": "product_name",
+      "COLUMN_TYPE": "varchar(100)",
+      "IS_NULLABLE": "YES",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_product",
+      "COLUMN_NAME": "product_number",
+      "COLUMN_TYPE": "varchar(50)",
+      "IS_NULLABLE": "YES",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_product",
+      "COLUMN_NAME": "subcategory_name",
+      "COLUMN_TYPE": "varchar(100)",
+      "IS_NULLABLE": "YES",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_product",
+      "COLUMN_NAME": "category_name",
+      "COLUMN_TYPE": "varchar(100)",
+      "IS_NULLABLE": "YES",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_product",
+      "COLUMN_NAME": "standard_cost",
+      "COLUMN_TYPE": "decimal(19,4)",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_product",
+      "COLUMN_NAME": "berlaku_mulai",
+      "COLUMN_TYPE": "date",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_product",
+      "COLUMN_NAME": "berlaku_sampai",
+      "COLUMN_TYPE": "date",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_promotion",
+      "COLUMN_NAME": "promotion_key",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "PRI",
+      "EXTRA": "auto_increment"
+    },
+    {
+      "TABLE_NAME": "dim_promotion",
+      "COLUMN_NAME": "special_offer_id",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_promotion",
+      "COLUMN_NAME": "description",
+      "COLUMN_TYPE": "varchar(255)",
+      "IS_NULLABLE": "YES",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_promotion",
+      "COLUMN_NAME": "discount_pct",
+      "COLUMN_TYPE": "decimal(10,4)",
+      "IS_NULLABLE": "YES",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_promotion",
+      "COLUMN_NAME": "type",
+      "COLUMN_TYPE": "varchar(50)",
+      "IS_NULLABLE": "YES",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_promotion",
+      "COLUMN_NAME": "category",
+      "COLUMN_TYPE": "varchar(50)",
+      "IS_NULLABLE": "YES",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_ship_method",
+      "COLUMN_NAME": "ship_method_key",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "PRI",
+      "EXTRA": "auto_increment"
+    },
+    {
+      "TABLE_NAME": "dim_ship_method",
+      "COLUMN_NAME": "ship_method_id",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_ship_method",
+      "COLUMN_NAME": "ship_method_name",
+      "COLUMN_TYPE": "varchar(50)",
+      "IS_NULLABLE": "YES",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_ship_method",
+      "COLUMN_NAME": "ship_base",
+      "COLUMN_TYPE": "decimal(19,4)",
+      "IS_NULLABLE": "YES",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_ship_method",
+      "COLUMN_NAME": "ship_rate",
+      "COLUMN_TYPE": "decimal(19,4)",
+      "IS_NULLABLE": "YES",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_territory",
+      "COLUMN_NAME": "territory_key",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "PRI",
+      "EXTRA": "auto_increment"
+    },
+    {
+      "TABLE_NAME": "dim_territory",
+      "COLUMN_NAME": "territory_id",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_territory",
+      "COLUMN_NAME": "territory_name",
+      "COLUMN_TYPE": "varchar(50)",
+      "IS_NULLABLE": "YES",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_territory",
+      "COLUMN_NAME": "country_code",
+      "COLUMN_TYPE": "varchar(3)",
+      "IS_NULLABLE": "YES",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "dim_territory",
+      "COLUMN_NAME": "territory_group",
+      "COLUMN_TYPE": "varchar(50)",
+      "IS_NULLABLE": "YES",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "COLUMN_NAME": "sales_detail_key",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "PRI",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "COLUMN_NAME": "sales_order_id",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "MUL",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "COLUMN_NAME": "tanggal_key",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "MUL",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "COLUMN_NAME": "product_key",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "MUL",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "COLUMN_NAME": "customer_key",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "MUL",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "COLUMN_NAME": "territory_key",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "MUL",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "COLUMN_NAME": "promotion_key",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "MUL",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "COLUMN_NAME": "currency_key",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "MUL",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "COLUMN_NAME": "ship_method_key",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "MUL",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "COLUMN_NAME": "order_qty",
+      "COLUMN_TYPE": "int",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "COLUMN_NAME": "unit_price",
+      "COLUMN_TYPE": "decimal(19,4)",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "COLUMN_NAME": "unit_price_discount",
+      "COLUMN_TYPE": "decimal(19,4)",
+      "IS_NULLABLE": "NO",
+      "COLUMN_KEY": "",
+      "EXTRA": ""
+    },
+    {
+      "TABLE_NAME": "fact_online_sales",
+      "COLUMN_NAME": "line_total",
+      "COLUMN_TYPE": "decimal(19,4)",
+      "IS_NULLABLE": "NO"
+    }
+  ],
+  "monthly": [
+    {
+      "month": "2011-05",
+      "detail_rows": "5",
+      "orders": "5",
+      "units": "5",
+      "revenue": "14477.3382"
+    },
+    {
+      "month": "2011-06",
+      "detail_rows": "141",
+      "orders": "141",
+      "units": "141",
+      "revenue": "458910.8248"
+    },
+    {
+      "month": "2011-07",
+      "detail_rows": "156",
+      "orders": "156",
+      "units": "156",
+      "revenue": "506191.6912"
+    },
+    {
+      "month": "2011-08",
+      "detail_rows": "150",
+      "orders": "150",
+      "units": "150",
+      "revenue": "485198.6594"
+    },
+    {
+      "month": "2011-09",
+      "detail_rows": "157",
+      "orders": "157",
+      "units": "157",
+      "revenue": "502073.8458"
+    },
+    {
+      "month": "2011-10",
+      "detail_rows": "174",
+      "orders": "174",
+      "units": "174",
+      "revenue": "561681.4758"
+    },
+    {
+      "month": "2011-11",
+      "detail_rows": "230",
+      "orders": "230",
+      "units": "230",
+      "revenue": "737839.8214"
+    },
+    {
+      "month": "2011-12",
+      "detail_rows": "188",
+      "orders": "188",
+      "units": "188",
+      "revenue": "596746.5568"
+    },
+    {
+      "month": "2012-01",
+      "detail_rows": "193",
+      "orders": "193",
+      "units": "193",
+      "revenue": "614557.9350"
+    },
+    {
+      "month": "2012-02",
+      "detail_rows": "182",
+      "orders": "182",
+      "units": "182",
+      "revenue": "592526.9676"
+    },
+    {
+      "month": "2012-03",
+      "detail_rows": "219",
+      "orders": "219",
+      "units": "219",
+      "revenue": "706631.5268"
+    },
+    {
+      "month": "2012-04",
+      "detail_rows": "201",
+      "orders": "201",
+      "units": "201",
+      "revenue": "632797.0314"
+    },
+    {
+      "month": "2012-05",
+      "detail_rows": "221",
+      "orders": "221",
+      "units": "221",
+      "revenue": "680913.2906"
+    },
+    {
+      "month": "2012-06",
+      "detail_rows": "251",
+      "orders": "251",
+      "units": "251",
+      "revenue": "498163.6436"
+    },
+    {
+      "month": "2012-07",
+      "detail_rows": "274",
+      "orders": "274",
+      "units": "274",
+      "revenue": "532594.6708"
+    },
+    {
+      "month": "2012-08",
+      "detail_rows": "212",
+      "orders": "212",
+      "units": "212",
+      "revenue": "373483.0054"
+    },
+    {
+      "month": "2012-09",
+      "detail_rows": "219",
+      "orders": "219",
+      "units": "219",
+      "revenue": "400335.6145"
+    },
+    {
+      "month": "2012-10",
+      "detail_rows": "207",
+      "orders": "207",
+      "units": "207",
+      "revenue": "358877.8907"
+    },
+    {
+      "month": "2012-11",
+      "detail_rows": "318",
+      "orders": "318",
+      "units": "318",
+      "revenue": "555160.1428"
+    },
+    {
+      "month": "2012-12",
+      "detail_rows": "246",
+      "orders": "246",
+      "units": "246",
+      "revenue": "444558.2281"
+    },
+    {
+      "month": "2013-01",
+      "detail_rows": "294",
+      "orders": "294",
+      "units": "294",
+      "revenue": "523917.3815"
+    },
+    {
+      "month": "2013-02",
+      "detail_rows": "251",
+      "orders": "251",
+      "units": "251",
+      "revenue": "451643.7176"
+    },
+    {
+      "month": "2013-03",
+      "detail_rows": "307",
+      "orders": "307",
+      "units": "307",
+      "revenue": "531316.2871"
+    },
+    {
+      "month": "2013-04",
+      "detail_rows": "326",
+      "orders": "326",
+      "units": "326",
+      "revenue": "544393.2060"
+    },
+    {
+      "month": "2013-05",
+      "detail_rows": "383",
+      "orders": "333",
+      "units": "383",
+      "revenue": "578200.2778"
+    },
+    {
+      "month": "2013-06",
+      "detail_rows": "1444",
+      "orders": "533",
+      "units": "1444",
+      "revenue": "860141.1300"
+    },
+    {
+      "month": "2013-07",
+      "detail_rows": "3793",
+      "orders": "1564",
+      "units": "3793",
+      "revenue": "847138.6500"
+    },
+    {
+      "month": "2013-08",
+      "detail_rows": "4087",
+      "orders": "1690",
+      "units": "4087",
+      "revenue": "1049907.3900"
+    },
+    {
+      "month": "2013-09",
+      "detail_rows": "3979",
+      "orders": "1612",
+      "units": "3979",
+      "revenue": "1046022.7700"
+    },
+    {
+      "month": "2013-10",
+      "detail_rows": "4399",
+      "orders": "1792",
+      "units": "4399",
+      "revenue": "1284592.9300"
+    },
+    {
+      "month": "2013-11",
+      "detail_rows": "5025",
+      "orders": "2007",
+      "units": "5025",
+      "revenue": "1643177.7800"
+    },
+    {
+      "month": "2013-12",
+      "detail_rows": "4671",
+      "orders": "1875",
+      "units": "4671",
+      "revenue": "1371675.8100"
+    },
+    {
+      "month": "2014-01",
+      "detail_rows": "4865",
+      "orders": "1966",
+      "units": "4865",
+      "revenue": "1551065.5600"
+    },
+    {
+      "month": "2014-02",
+      "detail_rows": "4273",
+      "orders": "1753",
+      "units": "4273",
+      "revenue": "1334494.3900"
+    },
+    {
+      "month": "2014-03",
+      "detail_rows": "5308",
+      "orders": "2128",
+      "units": "5308",
+      "revenue": "1691178.9100"
+    },
+    {
+      "month": "2014-04",
+      "detail_rows": "5295",
+      "orders": "2113",
+      "units": "5295",
+      "revenue": "1795889.1300"
+    },
+    {
+      "month": "2014-05",
+      "detail_rows": "5624",
+      "orders": "2232",
+      "units": "5624",
+      "revenue": "1951195.9000"
+    },
+    {
+      "month": "2014-06",
+      "detail_rows": "2130",
+      "orders": "939",
+      "units": "2130",
+      "revenue": "49005.8400"
+    }
+  ],
+  "formal_calendar_standard": "BELUM DAPAT DIUJI: official lecturer template unavailable"
+}

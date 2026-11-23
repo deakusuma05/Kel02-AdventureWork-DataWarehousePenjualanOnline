@@ -1,0 +1,23 @@
+-- 01_query
+SELECT {[Measures].[Sales Amount]} ON COLUMNS, NON EMPTY [Tanggal.Kalender].[Bulan].Members ON ROWS FROM [OnlineSalesCube]
+
+-- 02_query
+SELECT {[Measures].[Sales Amount], [Measures].[Order Quantity]} ON COLUMNS, NON EMPTY TopCount([Produk.Katalog].[Produk].Members,10,[Measures].[Sales Amount]) ON ROWS FROM [OnlineSalesCube]
+
+-- 03_query
+SELECT {[Measures].[Sales Amount], [Measures].[Distinct Orders]} ON COLUMNS, NON EMPTY TopCount([Pelanggan.Profil].[Pelanggan].Members,10,[Measures].[Sales Amount]) ON ROWS FROM [OnlineSalesCube]
+
+-- 04_query
+SELECT {[Measures].[Sales Amount]} ON COLUMNS, NON EMPTY [Wilayah.Geografi].[Wilayah].Members ON ROWS FROM [OnlineSalesCube]
+
+-- 05_query
+SELECT {[Measures].[Sales Amount], [Measures].[Distinct Orders], [Measures].[Estimated Promo Discount]} ON COLUMNS, NON EMPTY [Promosi.Penawaran].[Penawaran].Members ON ROWS FROM [OnlineSalesCube]
+
+-- 06_query
+SELECT {[Measures].[Distinct Orders], [Measures].[Sales Amount]} ON COLUMNS, NON EMPTY [Kurs.Referensi].[Status Kurs].Members ON ROWS FROM [OnlineSalesCube]
+
+-- 06b_destination_currency
+SELECT {[Measures].[Distinct Orders], [Measures].[Sales Amount]} ON COLUMNS, NON EMPTY [Kurs.Referensi].[Kode Tujuan].Members ON ROWS FROM [OnlineSalesCube]
+
+-- 07_query
+SELECT {[Measures].[Distinct Orders], [Measures].[Sales Amount]} ON COLUMNS, NON EMPTY [Pengiriman.Layanan].[Metode].Members ON ROWS FROM [OnlineSalesCube]

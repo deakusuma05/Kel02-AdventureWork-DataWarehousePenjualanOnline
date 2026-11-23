@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-ATLAS OLAP audited package: legacy-schema Mondrian 3.x (not eMondrian new modeling syntax).
+Kelompok 2 OLAP package: legacy-schema Mondrian 3.x (not eMondrian new modeling syntax).
 REQUIRES: olap/sql/01_create_olap_view.sql on SINGLE selected original dump.
 This is a real SQL cube definition, not a frontend fake MDX runtime.
 OLAP runtime unverified in this environment; run MDX smoke tests on your server.
@@ -10,7 +10,7 @@ OLAP runtime unverified in this environment; run MDX smoke tests on your server.
     <Table schema="adventureworks_dw" name="v_online_sales_cube"/>
     <Dimension name="Tanggal" type="TimeDimension" foreignKey="tanggal_key">
       <Hierarchy name="Kalender" hasAll="true" allMemberName="Semua Tanggal" primaryKey="tanggal_key">
-        <Table schema="adventureworks_dw" name="dim_date"/>
+        <Table schema="adventureworks_dw" name="dim_tanggal"/>
         <Level name="Tahun" column="tahun" type="Numeric" uniqueMembers="true" levelType="TimeYears"/>
         <Level name="Kuartal" column="kuartal" type="Numeric" uniqueMembers="false" levelType="TimeQuarters"/>
         <Level name="Bulan" column="bulan" nameColumn="nama_bulan" type="Numeric" uniqueMembers="false" levelType="TimeMonths"/>

@@ -1,4 +1,4 @@
-# ATLAS — Paket OLAP lengkap, khusus folder olap
+# Kelompok 2 — Paket OLAP lengkap, khusus folder olap
 
 ## Mulai di sini
 
