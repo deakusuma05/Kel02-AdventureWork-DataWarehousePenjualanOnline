@@ -359,7 +359,7 @@ Setiap anggota wajib mendokumentasikan hasil pekerjaannya dan berkoordinasi apab
 
 ### Progres Tahapan Pengembangan:
 - [x] **Pekan 9–10:** Perencanaan, Desain Awal, Piagam Proyek, Profiling, Bus Matrix, Star Schema V1 & V2, dan Laporan Pekan 10
-- [x] **Pekan 11:** Implementasi Data Warehouse Fisik, Standarisasi `dim_date` v1.0, dan Laporan Pekan 11
+- [x] **Pekan 11:** Implementasi Data Warehouse Fisik, Standarisasi `dim_tanggal` v1.0, dan Laporan Pekan 11
 - [x] **Pekan 12:** DDL Idempotent, Uji Constraint Fisik (PK, FK, NOT NULL), Kamus Data, Reverse Engineering ERD DBeaver, dan Laporan Pekan 12
 - [x] **Pekan 13:** Implementasi Pipeline ETL Pentaho PDI Lengkap:
   - [x] Transformasi ekstraksi staging `t01_ekstrak.ktr` (Header 27.659, Detail 60.398 baris)
