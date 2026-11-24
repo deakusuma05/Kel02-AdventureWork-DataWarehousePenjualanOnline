@@ -866,7 +866,7 @@ SELECT
     SUM(f.order_qty) AS monthly_units,
     ROUND(SUM(f.line_total), 2) AS monthly_sales
 FROM fact_online_sales f
-JOIN dim_date d ON f.tanggal_key = d.tanggal_key
+JOIN dim_tanggal d ON f.tanggal_key = d.tanggal_key
 GROUP BY d.tahun, d.bulan, d.nama_bulan
 ORDER BY d.tahun, d.bulan;</pre>
             <span class="text-[#64748B] block">Menghasilkan 38 baris deret waktu bulanan (Mei 2011 – Juni 2014).</span>
@@ -1048,7 +1048,7 @@ GROUP BY s.ship_method_name ORDER BY total_orders DESC;</pre>
           title: 'Pertanyaan Bisnis 1 (Line Chart Tren Bulanan)',
           q: 'Bagaimana tren nilai penjualan online setiap bulan?',
           vis: 'Line chart tren bulanan (P1)',
-          sql: 'SELECT d.tahun, d.bulan, d.nama_bulan, ROUND(SUM(f.line_total), 2) AS sales_amount, COUNT(DISTINCT f.sales_order_id) AS total_orders, SUM(f.order_qty) AS total_units FROM fact_online_sales f JOIN dim_date d ON f.tanggal_key = d.tanggal_key GROUP BY d.tahun, d.bulan, d.nama_bulan ORDER BY d.tahun, d.bulan;'
+          sql: 'SELECT d.tahun, d.bulan, d.nama_bulan, ROUND(SUM(f.line_total), 2) AS sales_amount, COUNT(DISTINCT f.sales_order_id) AS total_orders, SUM(f.order_qty) AS total_units FROM fact_online_sales f JOIN dim_tanggal d ON f.tanggal_key = d.tanggal_key GROUP BY d.tahun, d.bulan, d.nama_bulan ORDER BY d.tahun, d.bulan;'
         },
         'P2': {
           title: 'Pertanyaan Bisnis 2 (Bar Chart Produk & Kategori)',
